@@ -1,0 +1,3 @@
+python-dotenv=1.0.1
+openai=1.52.1
+google-generativeai=0.8.3
