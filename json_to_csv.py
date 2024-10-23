@@ -1,24 +1,25 @@
-import json
 import csv
 import sys
 import os
-import glob
+from evaluate_raw import evaluate_all_raw_jsons
 
-def json_to_csv(json_file, run_number, output_file=None):
-    with open(json_file, 'r') as f:
-        data = json.load(f)
-
+def json_to_csv(data, run_number, output_file=None):
     rows = []
-    for response in data['Prompts']:
-        row = {
-            'pdf_name': data['PDF_Name'],
-            'model_name': data['Model_Name'],
-            'number': response['number'],
-            'answer': response['answer'],
-            'explanation': response['quote'],
-            'run': run_number
-        }
-        rows.append(row)
+    for entry in data:
+        if 'Prompts' not in entry:
+            print(f"Error: 'Prompts' key missing in one of the entries: {entry}")
+            continue
+
+        for response in entry['Prompts']:
+            row = {
+                'pdf_name': entry.get('PDF_Name', 'N/A'),
+                'model_name': entry.get('Model_Name', 'N/A'),
+                'number': response.get('number', 'N/A'),
+                'answer': response.get('answer', 'N/A'),
+                'explanation': response.get('quote', 'N/A'),
+                'run': run_number
+            }
+            rows.append(row)
 
     if output_file is None:
         output_file = 'output.csv'
@@ -29,7 +30,7 @@ def json_to_csv(json_file, run_number, output_file=None):
 
     with open(output_file, 'a' if file_exists else 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=['pdf_name', 'model_name', 'number', 'answer', 'explanation', 'run'])
-        if not file_exists:  # Write header only once
+        if not file_exists:
             writer.writeheader()
         for row in rows:
             writer.writerow(row)
@@ -43,19 +44,8 @@ def main():
     run_number = int(sys.argv[2])
     output_file = sys.argv[3] if len(sys.argv) == 4 else None
 
-    json_files = glob.glob(file_pattern)
-    
-    if not json_files:
-        print(f"No files found for pattern: {file_pattern}")
-        sys.exit(1)
-
-    for json_file in json_files:
-        if not os.path.isfile(json_file):
-            print(f"Skipping {json_file}, not a valid file.")
-            continue
-
-        print(f"Processing file: {json_file}")
-        json_to_csv(json_file, run_number, output_file)
+    data = evaluate_all_raw_jsons(file_pattern, False)
+    json_to_csv(data, run_number, output_file)
 
 if __name__ == '__main__':
     main()

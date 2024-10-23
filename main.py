@@ -1,6 +1,5 @@
 from gemini_pipeline import process_file_with_gemini
 from gpt_pipeline import process_pdf_with_openai
-from evaluation import evaluate_csv_string
 from save_raw_data import save_raw_data_as_json
 
 import argparse
@@ -85,7 +84,6 @@ def main():
                 failed_count += 1
             else:
                 save_raw_data_as_json(last_output, os.path.basename(file_path), args.model)
-                evaluate_csv_string(last_output, os.path.basename(file_path), args.model)
 
         except Exception as e:
             error_message = f"Error processing {file_path}: {str(e)}"

@@ -1,9 +1,7 @@
-import json
 import csv
 import sys
-import os
-import glob
 from collections import defaultdict
+from evaluate_raw import evaluate_all_raw_jsons
 
 def clean_study_number(study_number):
     """Clean study number by removing file extensions and leading zeros."""
@@ -38,10 +36,8 @@ def parse_json_answer(answer):
     else:
         return None  # Invalid answer or "No Answer"
 
-def compare_answers(json_file, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper, skipped_invalid_format, skipped_no_answer_in_csv):
+def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper, skipped_invalid_format, skipped_no_answer_in_csv):
     """Compare answers from the JSON file with the correct answers from the CSV and record bias."""
-    with open(json_file, 'r') as f:
-        data = json.load(f)
 
     matches = 0
     total_comparisons = 0
@@ -136,10 +132,9 @@ def main():
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
 
-    # Find all matching JSON files using glob
-    json_files = glob.glob(file_pattern)
-    
-    if not json_files:
+    data = evaluate_all_raw_jsons(file_pattern, False)
+
+    if not data:
         print(f"No files found for pattern: {file_pattern}")
         sys.exit(1)
 
@@ -163,13 +158,10 @@ def main():
     global_bias = {'yes_to_no': 0, 'no_to_yes': 0}
 
         # Compare each JSON file with the correct answers
-    for json_file in json_files:
-        if not os.path.isfile(json_file):
-            print(f"Skipping {json_file}, not a valid file.")
-            continue
-            
+    for entry in data:
+
         matches, total_comparisons, skipped_format, skipped_no_csv = compare_answers(
-            json_file, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper, skipped_invalid_format, skipped_no_answer_in_csv
+            entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper, skipped_invalid_format, skipped_no_answer_in_csv
         )
 
         # Accumulate skipped invalid format and missing CSV answers
@@ -178,9 +170,9 @@ def main():
 
         if total_comparisons > 0:
             match_percentage = (matches / total_comparisons) * 100
-            print(f"File: {json_file} - Match Percentage: {match_percentage:.2f}% ({matches}/{total_comparisons} matches)")
+            print(f"File: {entry['PDF_Name']} - Match Percentage: {match_percentage:.2f}% ({matches}/{total_comparisons} matches)")
         else:
-            print(f"File: {json_file} - No valid comparisons")
+            print(f"File: {entry['PDF_Name']} - No valid comparisons")
 
         global_matches += matches
         global_total_comparisons += total_comparisons

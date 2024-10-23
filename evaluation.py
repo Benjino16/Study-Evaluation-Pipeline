@@ -1,8 +1,5 @@
-import json
 import io
 import csv
-import os
-from datetime import datetime
 import re
 
 def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):
@@ -57,7 +54,6 @@ def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):
             del prompts['7b']
             del prompts['7c']
 
-
         if not any(prompts.values()):
             raise ValueError("Keine gültigen Zeilen im CSV-String gefunden.")
         
@@ -71,18 +67,4 @@ def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):
         "Prompts": list(prompts.values())
     }
 
-    pdf_name = os.path.basename(pdf_name).split('.')[0]
-    
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    
-    json_name = f"{pdf_name}-{timestamp}.json"
-    output_filename = "../Data/Results/" + json_name
-
-    os.makedirs(os.path.dirname(output_filename), exist_ok=True)
-    
-    try:
-        with open(output_filename, 'w') as f:
-            json.dump(data, f, indent=4)
-    except Exception as e:
-        print(f"Fehler beim Schreiben der JSON-Datei: {e}")
-    print(f"Ergebnisse gespeichert in JSON-Datei: {output_filename}")
+    return data
