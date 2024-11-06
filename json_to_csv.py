@@ -36,15 +36,19 @@ def json_to_csv(data, run_number, output_file=None):
             writer.writerow(row)
 
 def main():
-    if len(sys.argv) < 3 or len(sys.argv) > 4:
-        print("Usage: python json_to_csv.py <json_file_pattern> <run_number> [<output_csv_file>]")
+    if len(sys.argv) < 3:
+        print("Usage: python json_to_csv.py <json_file_pattern> <run_number> <output_csv_file>")
         sys.exit(1)
+
+    combine7abc = False
+    if '--combine7abc' in sys.argv:
+        combine7abc = True
 
     file_pattern = sys.argv[1]
     run_number = int(sys.argv[2])
-    output_file = sys.argv[3] if len(sys.argv) == 4 else None
+    output_file = sys.argv[3]
 
-    data = evaluate_all_raw_jsons(file_pattern, False)
+    data = evaluate_all_raw_jsons(file_pattern, combine7abc)
     json_to_csv(data, run_number, output_file)
 
 if __name__ == '__main__':

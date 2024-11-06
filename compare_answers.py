@@ -129,10 +129,14 @@ def main():
             print("Error: You must specify a prompt number after --prompt.")
             sys.exit(1)
 
+    combine7abc = False
+    if '--combine7abc' in sys.argv:
+        combine7abc = True
+
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
 
-    data = evaluate_all_raw_jsons(file_pattern, False)
+    data = evaluate_all_raw_jsons(file_pattern, combine7abc)
 
     if not data:
         print(f"No files found for pattern: {file_pattern}")

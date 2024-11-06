@@ -37,18 +37,19 @@ def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):
                 print(f"Warnung: Zeile hat ein falsches Format und wird ignoriert: {row}")
 
         if combine_7abc:
-            answers = [prompts[q]['answer'].lower() for q in combine_questions]
+            quotes = [prompts[q]['quote'].lower() for q in combine_questions]
+            answers = [prompts[q]['answer'] for q in combine_questions]
             if 'no' in answers:
                 combined_answer = 'no'
             elif all(ans == 'yes' for ans in answers):
                 combined_answer = 'yes'
             else:
                 combined_answer = 'not-existent'
-            
+
             prompts['7a'] = {
                 'number': '7',
                 'answer': combined_answer,
-                'quote': 'Zusammenfassung von 7a, 7b und 7c'
+                'quote': '(combined 7a, 7b, 7c): ' + ';'.join(quotes)
             }
             
             del prompts['7b']
