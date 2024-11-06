@@ -1,3 +1,4 @@
+from env_manager import getPromptsLength
 from pipeline_manager import run_request
 from save_raw_data import save_raw_data_as_json
 
@@ -6,6 +7,7 @@ import glob
 import os
 import time
 import sys
+import datetime
 
 # Supported Models
 VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-1.5-pro', 
@@ -13,6 +15,22 @@ VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-1.5-pro',
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
+
+def display_overview(model: str, files_to_process, delay: int, process_all: bool):
+    
+    if process_all:
+        time_calculation = (delay + 5) * len(files_to_process)
+    else:
+        time_calculation = (delay + 5) * len(files_to_process) * getPromptsLength()
+
+    formatted_time = str(datetime.timedelta(seconds=time_calculation))
+
+    print("\n-------- overview --------\n")
+    print(f"model: {model}")
+    print(f"files: {files_to_process}")
+    print(f"delay between requests: {delay}")
+    print(f"process all prompts: {process_all}")
+    print(f"Calculated Time: {formatted_time}")
 
 def display_status(model, current_file, progress, failed, errors, last_output):
     clear_console()
@@ -50,6 +68,12 @@ def main():
 
     files_to_process = list(set(files_to_process))  # remove double files
 
+    display_overview(args.model, files_to_process, args.delay, args.process_all)
+    eingabe = input("Drücke Enter, um fortzufahren...")
+    if eingabe != "":
+        print("Programm wird abgebrochen.")
+        exit()
+
     total_files = len(files_to_process)
     processed_count = 0
     failed_count = 0
@@ -71,11 +95,9 @@ def main():
             last_output = run_request(file_path, args.model, args.process_all, args.delay)
                 
             if last_output is None:
-                error_message = f"Skipping evaluation for {file_path} due to processing error."
-                errors.append(error_message)
-                failed_count += 1
-            else:
-                save_raw_data_as_json(last_output, os.path.basename(file_path), args.model)
+                raise(f"Skipping evaluation for {file_path} due to processing error.")
+            
+            save_raw_data_as_json(last_output, os.path.basename(file_path), args.model)
 
         except Exception as e:
             error_message = f"Error processing {file_path}: {str(e)}"
