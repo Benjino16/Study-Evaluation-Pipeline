@@ -17,7 +17,7 @@ def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def display_overview(model: str, files_to_process, delay: int, process_all: bool, temperature: float):
-    
+    clear_console()
     if process_all:
         time_calculation = (delay + 5) * len(files_to_process)
     else:
