@@ -35,7 +35,7 @@ A streamlined pipeline that uploads PDFs to Gemini/OpenAI, where language models
    Verify your setup by running the following command. This will check for any issues and confirm that the environment is correctly configured.
    
    ```bash
-   python test.py
+   python api_test.py
    ```
 
 ### Usage
