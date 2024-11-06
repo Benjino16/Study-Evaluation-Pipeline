@@ -60,4 +60,12 @@ def process_file_with_gemini(filename: str, model: str = "gemini-1.5-pro", proce
 
         return "\n".join(results)
     
-    
+def test_gemini_pipeline():
+    try:
+        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+        response = model.generate_content(
+            "This is a test call. Simply answer with the word test.",
+        )
+        return response.text != None
+    except:
+        return False

@@ -95,3 +95,18 @@ def process_pdf_with_openai(filename: str, model: str = "gpt-4o", process_all: b
                 time.sleep(delay)
 
         return "\n".join(results)
+    
+def test_gpt_pipeline():
+    try:
+        client = OpenAI(
+            api_key=env('API_GPT'),
+        )
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "user", "content": "This is a test call. Simply answer with the word test."}
+            ]
+        )
+        return response.choices[0].message.content != None
+    except:
+        return False
