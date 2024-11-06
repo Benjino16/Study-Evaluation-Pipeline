@@ -1,5 +1,4 @@
-from gemini_pipeline import process_file_with_gemini
-from gpt_pipeline import process_pdf_with_openai
+from pipeline_manager import run_request
 from save_raw_data import save_raw_data_as_json
 
 import argparse
@@ -59,7 +58,7 @@ def main():
     for file_path in files_to_process:
         processed_count += 1
         last_output = None
-
+        
         if not os.path.isfile(file_path):
             error_message = f"Skipping {file_path}, not a valid file."
             errors.append(error_message)
@@ -69,14 +68,7 @@ def main():
             continue
 
         try:
-            if args.model.lower().startswith('gemini'):
-                last_output = process_file_with_gemini(
-                    file_path, model=args.model, process_all=args.process_all, delay=args.delay
-                )
-            elif args.model.lower().startswith('gpt'):
-                last_output = process_pdf_with_openai(
-                    file_path, model=args.model, process_all=args.process_all, delay=args.delay
-                )
+            last_output = run_request(file_path, args.model, args.process_all, args.delay)
                 
             if last_output is None:
                 error_message = f"Skipping evaluation for {file_path} due to processing error."
