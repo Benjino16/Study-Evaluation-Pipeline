@@ -15,14 +15,14 @@ client = OpenAI(
         api_key=env('API_GPT'),
     )
 
-def process_pdf_with_openai(prompt: str, filename: str, model: str = "gpt-4o") -> str:
+def process_pdf_with_openai(prompt: str, filename: str, model: str, temperature: float) -> str:
 
     pdf_assistant = client.beta.assistants.retrieve(assistantID)
     
     thread = client.beta.threads.create()
     
     file_id = get_file(filename, client)
-    
+
     client.beta.threads.messages.create(
         thread_id=thread.id,
         role="user",
@@ -35,7 +35,7 @@ def process_pdf_with_openai(prompt: str, filename: str, model: str = "gpt-4o") -
     )
 
     run = client.beta.threads.runs.create_and_poll(
-        thread_id=thread.id, assistant_id=pdf_assistant.id, timeout=20000
+        thread_id=thread.id, assistant_id=pdf_assistant.id, timeout=20000, temperature=temperature
     )
 
     if run.status == "completed":

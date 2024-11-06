@@ -7,8 +7,6 @@ from env_manager import env, getPrompt, getPromptsLength
 
 genai.configure(api_key=env('API_GEMINI'))
 
-temp = 0.0
-
 # Global list to check for already uploaded pdfs
 uploaded_files = []
 
@@ -16,7 +14,7 @@ def get_filename_without_path_and_extension(filepath: str) -> str:
     """Extrahiert den Dateinamen ohne Pfad und Erweiterung."""
     return os.path.splitext(os.path.basename(filepath))[0]
 
-def process_file_with_gemini(prompt: str, filename: str, model: str = "gemini-1.5-pro", process_all: bool = True, delay: int = 0) -> str:
+def process_file_with_gemini(prompt: str, filename: str, model: str, temperature: float) -> str:
     global uploaded_files
     
     # Extrahiere Dateinamen ohne Pfad und Erweiterung
@@ -42,11 +40,11 @@ def process_file_with_gemini(prompt: str, filename: str, model: str = "gemini-1.
 
     # Modell definieren und Antwort generieren
     model = genai.GenerativeModel(model_name=model)
-    
+
     response = model.generate_content(
         [file, prompt],
         generation_config=genai.types.GenerationConfig(
-            temperature=temp,
+            temperature=temperature,
         )
     )
     return response.text
