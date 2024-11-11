@@ -24,7 +24,7 @@ A streamlined pipeline that uploads PDFs to Gemini/OpenAI, where language models
    ```
 
 3. **Configure API Keys**  
-   Create a `secrets.env` file in the root directory of the project. This file should contain your API keys for Gemini and OpenAI, formatted as follows:
+   Create a `.env` file in the root directory of the project. This file should contain your API keys for Gemini and OpenAI, formatted as follows:
 
    ```plaintext
    API_GPT=your_openai_api_key
