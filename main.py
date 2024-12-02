@@ -1,5 +1,6 @@
 from gemini_pipeline import process_file_with_gemini
 from gpt_pipeline import process_pdf_with_openai
+from gpt_text_pipeline import process_text_with_openai
 from save_raw_data import save_raw_data_as_json
 
 import argparse
@@ -10,7 +11,7 @@ import sys
 
 # Supported Models
 VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-1.5-pro', 
-                'gemini-1.0-pro', 'gemini-1.5-flash']
+                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview']
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -37,7 +38,8 @@ def main():
     parser.add_argument('--model', required=True, help='Model to use (e.g., gpt-4o, gemini-3).')
     parser.add_argument('--files', nargs='+', required=True, help='Files or patterns to process (supports globbing).')
     parser.add_argument('--delay', type=int, default=0, help='Delay time in seconds between processing files.')
-    parser.add_argument('--process_all', action='store_true', help='Process all prompts in a single request if set.')
+    parser.add_argument('--process_all', action='store_true', help='Process all prompts in a single request if set. If --pdf_reader is set, it will process each page seperetly.')
+    parser.add_argument('--pdf_reader', action='store_true', help='Uses a local pdf reader and provides the extracted as a context for the model.')
 
     args = parser.parse_args()
 
@@ -70,13 +72,28 @@ def main():
 
         try:
             if args.model.lower().startswith('gemini'):
+                if args.pdf_reader:
+                    exit("Für gemini Modelle gibt es noch keine PDF-Reader option.")
                 last_output = process_file_with_gemini(
                     file_path, model=args.model, process_all=args.process_all, delay=args.delay
                 )
             elif args.model.lower().startswith('gpt'):
-                last_output = process_pdf_with_openai(
-                    file_path, model=args.model, process_all=args.process_all, delay=args.delay
-                )
+                if args.pdf_reader:
+                    last_output = process_text_with_openai(
+                        file_path, model=args.model, process_all=True, delay=args.delay
+                    )
+                else:
+                    last_output = process_pdf_with_openai(
+                        file_path, model=args.model, process_all=args.process_all, delay=args.delay
+                    )
+            elif args.model.lower().startswith('o1'):
+                if args.pdf_reader:
+                    last_output = process_text_with_openai(
+                        file_path, model=args.model, process_all=True, delay=args.delay
+                    )
+                else:
+                    exit("Eine Anfrage an ein o1 Modell ist ohne PDF-Reader nicht möglich.")
+
                 
             if last_output is None:
                 error_message = f"Skipping evaluation for {file_path} due to processing error."
