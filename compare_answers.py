@@ -92,19 +92,10 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     # Return the count of skipped invalid and missing CSV entries for tracking
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
+def run_comparrisson(csv: str, data: str, combine7abc: bool):
 
-def main():
-    parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
-    parser.add_argument('--csv', type=str, required=True, help='The csv that the results should be compared to.')
-    parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
-    parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
-
-    args = parser.parse_args()
-
-    csv_file = args.csv
-    file_pattern = args.data
-
-    combine7abc = args.combine7abc
+    csv_file = csv
+    file_pattern = data
 
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
@@ -216,6 +207,16 @@ def main():
     if failed_paper:
         print("\nFailed Papers (no valid comparisons):")
         print(", ".join(failed_paper))
+
+def main():
+    parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
+    parser.add_argument('--csv', type=str, required=True, help='The csv that the results should be compared to.')
+    parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
+    parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
+
+    args = parser.parse_args()
+    run_comparrisson(args.csv, args.data, args.combine7abc)
+
 
 if __name__ == '__main__':
     main()
