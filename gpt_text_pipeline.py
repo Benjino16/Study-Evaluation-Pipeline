@@ -19,7 +19,8 @@ def process_text_with_openai(filename: str, model: str = "gpt-4o", process_all: 
         response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "user", "content": prompt + context}
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": context}
             ]
         )
         return response.choices[0].message.content

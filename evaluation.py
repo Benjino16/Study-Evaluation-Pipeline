@@ -38,7 +38,7 @@ def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):
 
         if combine_7abc:
             quotes = [prompts[q]['quote'].lower() for q in combine_questions]
-            answers = [prompts[q]['answer'] for q in combine_questions]
+            answers = [prompts[q]['answer'].lower() for q in combine_questions]
             if 'no' in answers:
                 combined_answer = 'no'
             elif all(ans == 'yes' for ans in answers):

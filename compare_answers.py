@@ -36,12 +36,15 @@ def parse_json_answer(answer):
     else:
         return None  # Invalid answer or "No Answer"
 
-def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper, skipped_invalid_format, skipped_no_answer_in_csv):
+def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper):
     """Compare answers from the JSON file with the correct answers from the CSV and record bias."""
 
     matches = 0
     total_comparisons = 0
+
     skipped_format = 0  # Counter for answers skipped due to invalid format
+    skipped_format_list = []
+
     skipped_no_csv = 0  # Counter for valid format answers skipped due to no CSV entry
 
     study_number = clean_study_number(data['PDF_Name'])  # Clean the JSON study number
@@ -54,6 +57,7 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
         # Check if the answer in the JSON is valid (Yes/No)
         if json_answer is None:
             skipped_format += 1  # Invalid format
+            skipped_format_list.append(response)
         else:
             # Check if there is a corresponding correct answer in the CSV
             if (study_number, prompt_number) not in correct_answers:
@@ -84,7 +88,7 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
         failed_paper.append(study_number)
 
     # Return the count of skipped invalid and missing CSV entries for tracking
-    return matches, total_comparisons, skipped_format, skipped_no_csv
+    return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
 
 
@@ -145,6 +149,7 @@ def main():
     global_matches = 0
     global_total_comparisons = 0
     skipped_invalid_format = 0  # Counter for invalid format answers
+    skipped_list = []
     skipped_no_answer_in_csv = 0  # Counter for missing CSV answers
 
     failed_paper = []  # List to keep track of papers where all answers were skipped
@@ -164,12 +169,14 @@ def main():
         # Compare each JSON file with the correct answers
     for entry in data:
 
-        matches, total_comparisons, skipped_format, skipped_no_csv = compare_answers(
-            entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper, skipped_invalid_format, skipped_no_answer_in_csv
+        matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv = compare_answers(
+            entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format
+        for skipped_entry in skipped_format_list:
+            skipped_list.append(f"- File: {entry['PDF_Name']} {skipped_entry}")
         skipped_no_answer_in_csv += skipped_no_csv
 
         if total_comparisons > 0:
@@ -196,6 +203,8 @@ def main():
     # Print statistics for skipped answers
     print(f"\nSkipped Answers Due to Invalid Format: {skipped_invalid_format}")
     print(f"Skipped Answers Due to Missing CSV Entry: {skipped_no_answer_in_csv}")
+    print(f"Format Error List:")
+    print(* skipped_list, sep='\n')
 
     # Print question-based statistics
     print("\nQuestion-Based Statistics:")
