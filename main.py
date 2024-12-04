@@ -95,7 +95,7 @@ def main():
             continue
 
         try:
-            last_output = run_request(file_path, args.model, args.process_all, args.delay, args.temp)
+            last_output = run_request(file_path, args.model, args.process_all, args.pdf_reader, args.delay, args.temp)
                 
             if last_output is None:
                 raise(f"Skipping evaluation for {file_path} due to processing error.")
