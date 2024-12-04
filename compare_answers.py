@@ -129,8 +129,11 @@ def run_comparrisson(csv: str, data: str, combine7abc: bool):
     global_bias = {'yes_to_no': 0, 'no_to_yes': 0}
 
         # Compare each JSON file with the correct answers
-    for entry in data:
+    # List to store results for sorting
+    results = []
 
+    # Original loop for processing data entries
+    for entry in data:
         matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv = compare_answers(
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
@@ -143,12 +146,39 @@ def run_comparrisson(csv: str, data: str, combine7abc: bool):
 
         if total_comparisons > 0:
             match_percentage = (matches / total_comparisons) * 100
-            print(f"File: {entry['PDF_Name']} - Match Percentage: {match_percentage:.2f}% ({matches}/{total_comparisons} matches)")
+            # Save result to list for later sorting
+            results.append({
+                'PDF_Name': entry['PDF_Name'],
+                'match_percentage': match_percentage,
+                'matches': matches,
+                'total_comparisons': total_comparisons
+            })
         else:
-            print(f"File: {entry['PDF_Name']} - No valid comparisons")
+            # Save result indicating no valid comparisons
+            results.append({
+                'PDF_Name': entry['PDF_Name'],
+                'match_percentage': None,
+                'matches': matches,
+                'total_comparisons': total_comparisons
+            })
 
         global_matches += matches
         global_total_comparisons += total_comparisons
+
+    # Sort results by match_percentage (putting entries with None at the end)
+    sorted_results = sorted(
+        results,
+        key=lambda x: x['match_percentage'] if x['match_percentage'] is not None else -1,
+        reverse=True
+    )
+
+    # Print the sorted results
+    for result in sorted_results:
+        if result['match_percentage'] is not None:
+            print(f"File: {result['PDF_Name']} - Match Percentage: {result['match_percentage']:.2f}% ({result['matches']}/{result['total_comparisons']} matches)")
+        else:
+            print(f"File: {result['PDF_Name']} - No valid comparisons")
+
     
 
     # Print statistics for skipped answers
