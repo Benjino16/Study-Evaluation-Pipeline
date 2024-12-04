@@ -7,59 +7,48 @@ from env_manager import env, getPrompt, getPromptsLength
 
 genai.configure(api_key=env('API_GEMINI'))
 
-temp = 0.0
+# Global list to check for already uploaded pdfs
+uploaded_files = []
 
-def process_file_with_gemini(filename: str, model: str = "gemini-1.5-pro", process_all: bool = True, delay: int = 0) -> str:
+def get_filename_without_path_and_extension(filepath: str) -> str:
+    """Extrahiert den Dateinamen ohne Pfad und Erweiterung."""
+    return os.path.splitext(os.path.basename(filepath))[0]
+
+def process_file_with_gemini(prompt: str, filename: str, model: str, temperature: float) -> str:
+    global uploaded_files
     
+    # Extrahiere Dateinamen ohne Pfad und Erweiterung
+    file_key = get_filename_without_path_and_extension(filename)
 
-    sample_file = genai.upload_file(path=filename, display_name="Gemini 1.5 PDF")
-    print(f"Uploaded file '{sample_file.display_name}' as: {sample_file.uri}")
+    # Überprüfen, ob das PDF bereits hochgeladen wurde
+    for uploaded_file in uploaded_files:
+        if uploaded_file["name"] == file_key:
+            print(f"Datei '{file_key}' wurde bereits hochgeladen, verwende gespeichertes File.")
+            file = uploaded_file["file"]
+            break
+    else:
+        # Datei hochladen, falls noch nicht in der Liste vorhanden
+        sample_file = genai.upload_file(path=filename, display_name="Gemini 1.5 PDF")
+        print(f"Hochgeladene Datei '{sample_file.display_name}' als: {sample_file.uri}")
 
-    file = genai.get_file(name=sample_file.name)
-    print(f"Retrieved file '{file.display_name}' as: {file.uri}")
-    
+        # Datei zur Liste hinzufügen
+        uploaded_files.append({
+            "name": file_key,
+            "file": sample_file
+        })
+        file = sample_file
+
+    # Modell definieren und Antwort generieren
     model = genai.GenerativeModel(model_name=model)
 
-    if process_all:
-        prompt = getPrompt()
-        response = model.generate_content(
-            [sample_file, prompt],
-            generation_config=genai.types.GenerationConfig(
-            temperature=temp,
-            )
+    response = model.generate_content(
+        [file, prompt],
+        generation_config=genai.types.GenerationConfig(
+            temperature=temperature,
         )
-        return response.text
-    else:
-        # Process each prompt separately
-        results = []
-        total_prompts = getPromptsLength()
+    )
+    return response.text
 
-        for i in range( total_prompts): # Send each prompt as a separate request
-            prompt = getPrompt(i)
-
-            try:
-                print(f"Sending prompt: \n '{prompt}")
-                response = model.generate_content(
-                    [sample_file, prompt],
-                    generation_config=genai.types.GenerationConfig(
-                    temperature=temp,
-                    )
-                )
-
-                if response.text is not None:
-                    results.append(response.text)
-
-                else:
-                    print(f"Warning for prompt {i}: empty result")
-
-            except Exception as e:
-                print(f"Warning for prompt {i}: {str(e)} - Skipping this prompt")
-
-            if delay > 0:
-                time.sleep(delay)
-
-        return "\n".join(results)
-    
 def test_gemini_pipeline():
     try:
         model = genai.GenerativeModel(model_name="gemini-1.5-flash")
