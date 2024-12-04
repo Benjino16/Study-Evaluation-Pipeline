@@ -11,7 +11,7 @@ import datetime
 
 # Supported Models
 VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-1.5-pro', 
-                'gemini-1.0-pro', 'gemini-1.5-flash']
+                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview']
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -56,7 +56,8 @@ def main():
     parser.add_argument('--files', nargs='+', required=True, help='Files or patterns to process (supports globbing).')
     parser.add_argument('--delay', type=int, default=15, help='Delay time in seconds between processing files.')
     parser.add_argument('--temp', type=float, default=1.0, help='The temperature of the model.')
-    parser.add_argument('--process_all', action='store_true', help='Process all prompts in a single request if set.')
+    parser.add_argument('--process_all', action='store_true', help='Process all prompts in a single request if set. If --pdf_reader is set, it will process each page seperetly.')
+    parser.add_argument('--pdf_reader', action='store_true', help='Uses a local pdf reader and provides the extracted as a context for the model.')
 
     args = parser.parse_args()
 
@@ -94,7 +95,7 @@ def main():
             continue
 
         try:
-            last_output = run_request(file_path, args.model, args.process_all, args.delay, args.temp)
+            last_output = run_request(file_path, args.model, args.process_all, args.pdf_reader, args.delay, args.temp)
                 
             if last_output is None:
                 raise(f"Skipping evaluation for {file_path} due to processing error.")
