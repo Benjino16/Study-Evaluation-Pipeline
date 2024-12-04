@@ -1,5 +1,6 @@
 import os
 import platform
+import argparse
 from compare_answers import run_comparrisson
 
 def clear_console():
@@ -10,7 +11,20 @@ def clear_console():
         os.system("clear")
 
 def main():
-    base_directory = "../Data/Results/"
+    
+    parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
+    parser.add_argument('--dir', required=True, help='Base Directory of the run data.')
+    parser.add_argument('--combine7abc', action='store_true', help='Combines 7abc.')
+
+    args = parser.parse_args()
+
+    base_directory = args.dir
+    combine7abc = args.combine7abc
+    if combine7abc:
+        csv = "correct_answers_combined.csv"
+    else:
+        csv = "correct_answers.csv"
+    
 
     # Prüfen, ob das Verzeichnis existiert
     if not os.path.isdir(base_directory):
@@ -50,9 +64,9 @@ def main():
             selected_folder = os.path.join(base_directory, folder_list[choice])
 
             # Pfad zur CSV-Datei und Datenpfad
-            csv = "correct_answers.csv"
+            
             data = os.path.join(selected_folder, "*")
-            combine7abc = False
+            
 
             # Konsole leeren vor dem Start der Methode
             clear_console()
