@@ -1,5 +1,7 @@
+import argparse
 import csv
 import sys
+import re
 from collections import defaultdict
 from evaluate_raw import evaluate_all_raw_jsons
 
@@ -91,51 +93,18 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
 
-
-def prompt_info(prompt_number, question_stats, bias_stats, detailed_stats):
-    """Print detailed information for a specific prompt number."""
-    if prompt_number in question_stats:
-        total_comparisons = question_stats[prompt_number]['total']
-        matches = question_stats[prompt_number]['matches']
-        accuracy = (matches / total_comparisons) * 100 if total_comparisons > 0 else 0
-
-        # Bias stats
-        yes_to_no = bias_stats[prompt_number]['yes_to_no']
-        no_to_yes = bias_stats[prompt_number]['no_to_yes']
-
-        # Detailed lists of studies with biases
-        yes_to_no_studies = detailed_stats[prompt_number]['yes_to_no']
-        no_to_yes_studies = detailed_stats[prompt_number]['no_to_yes']
-
-        print(f"\nDetails for Prompt {prompt_number}:")
-        print(f"Total Comparisons: {total_comparisons}")
-        print(f"Accuracy (Match Percentage): {accuracy:.2f}% ({matches}/{total_comparisons} matches)")
-        print(f"Bias - No instead of Yes: {yes_to_no}, Yes instead of No: {no_to_yes}")
-        print(f"Studies where 'No' was answered instead of 'Yes': {', '.join(yes_to_no_studies) if yes_to_no_studies else 'None'}")
-        print(f"Studies where 'Yes' was answered instead of 'No': {', '.join(no_to_yes_studies) if no_to_yes_studies else 'None'}")
-    else:
-        print(f"\nNo data available for Prompt {prompt_number}.")
-
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: python compare_answers.py <csv_file> <json_file_pattern> [--prompt <prompt_number>]")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
+    parser.add_argument('--csv', type=str, required=True, help='The csv that the results should be compared to.')
+    parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
+    parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
 
-    csv_file = sys.argv[1]
-    file_pattern = sys.argv[2]  # Globbing pattern for JSON files
-    prompt_number = None
+    args = parser.parse_args()
 
-    if '--prompt' in sys.argv:
-        prompt_index = sys.argv.index('--prompt') + 1
-        if prompt_index < len(sys.argv):
-            prompt_number = sys.argv[prompt_index]
-        else:
-            print("Error: You must specify a prompt number after --prompt.")
-            sys.exit(1)
+    csv_file = args.csv
+    file_pattern = args.data
 
-    combine7abc = False
-    if '--combine7abc' in sys.argv:
-        combine7abc = True
+    combine7abc = args.combine7abc
 
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
@@ -163,6 +132,8 @@ def main():
     # Dictionary to store detailed statistics (study numbers) for each question (prompt)
     detailed_stats = defaultdict(lambda: {'yes_to_no': [], 'no_to_yes': []})
 
+
+    print(f"\nFile statistics:")
     # Global bias counters
     global_bias = {'yes_to_no': 0, 'no_to_yes': 0}
 
@@ -187,48 +158,59 @@ def main():
 
         global_matches += matches
         global_total_comparisons += total_comparisons
+    
 
-    # If a specific prompt number was provided, display its details
-    if prompt_number:
-        prompt_info(prompt_number, question_stats, bias_stats, detailed_stats)
-        return
+    # Print statistics for skipped answers
+    print(f"\n\033[31mError in format:   {skipped_invalid_format}\033[0m" if skipped_invalid_format != 0 else f"\nError in format:   {skipped_invalid_format}")
+    print(f"CSV entry missing: {skipped_no_answer_in_csv}")
+    if skipped_list:
+        print(f"Format Error List:")
+        print(* skipped_list, sep='\n')
+
+    def custom_sort_key(question):
+        """Sort keys so that numeric parts are sorted numerically and alphabetically for suffixes."""
+        match = re.match(r"(\d+)([a-zA-Z]*)", question)
+        if match:
+            number = int(match.group(1))
+            suffix = match.group(2)
+            return (number, suffix)
+        return (float('inf'), question)  # Put non-matching keys at the end if any
+
+    # Print combined question-based statistics in a formatted single-line per question
+    # Define the header with consistent width
+    header = f"\n{'Question':<12} {'Match %':>8} {'Matches':<6} | {'Bias (yes/no)':<1}"
+    print(header)
+    print('-' * len(header))  # Print a line under the header for readability
+
+    # Sort the keys using custom_sort_key
+    for question in sorted(question_stats.keys(), key=custom_sort_key):
+        stats = question_stats[question]
+        bias = bias_stats[question]
+
+        total_comparisons = stats['total']
+        matches = stats['matches']
+        yes_to_no = bias['yes_to_no']
+        no_to_yes = bias['no_to_yes']
+
+        if total_comparisons > 0:
+            question_match_percentage = (matches / total_comparisons) * 100
+            # Format each line with consistent width for matches and bias
+            formatted_line = f"{question:<12} {question_match_percentage:>6.2f}% ({matches:>2}/{total_comparisons:<2}) | {yes_to_no:>2}/{no_to_yes:<2}"
+        else:
+            # If there are no valid comparisons for the question
+            formatted_line = f"{question:<12} No valid comparisons"
+
+        # Print the formatted line for each question
+        print(formatted_line)
+
 
     # Calculate and print global match percentage
     if global_total_comparisons > 0:
         global_match_percentage = (global_matches / global_total_comparisons) * 100
-        print(f"\nGlobal Match Percentage: {global_match_percentage:.2f}% ({global_matches}/{global_total_comparisons} matches)")
+        print("\nGlobal Match Percentage: ")
+        print(f"\033[1;31m{global_match_percentage:.2f}% ({global_matches}/{global_total_comparisons} matches) | Bias: {global_bias['yes_to_no']}/{global_bias['no_to_yes']} (yes/not)\033[0m")
     else:
         print("\nNo valid comparisons across all files.")
-
-    # Print statistics for skipped answers
-    print(f"\nSkipped Answers Due to Invalid Format: {skipped_invalid_format}")
-    print(f"Skipped Answers Due to Missing CSV Entry: {skipped_no_answer_in_csv}")
-    print(f"Format Error List:")
-    print(* skipped_list, sep='\n')
-
-    # Print question-based statistics
-    print("\nQuestion-Based Statistics:")
-
-    # Sort the keys (prompt numbers) lexicographically to handle alphanumeric values like '7a'
-    for question, stats in sorted(question_stats.items(), key=lambda x: (str(x[0]))):
-        if stats['total'] > 0:
-            question_match_percentage = (stats['matches'] / stats['total']) * 100
-            print(f"Question {question}: {question_match_percentage:.2f}% ({stats['matches']}/{stats['total']} matches)")
-        else:
-            print(f"Question {question}: No valid comparisons")
-
-    # Print question-based bias statistics
-    print("\nQuestion-Based Bias Statistics:")
-
-    for question, bias in sorted(bias_stats.items(), key=lambda x: (str(x[0]))):
-        yes_to_no = bias['yes_to_no']
-        no_to_yes = bias['no_to_yes']
-
-        print(f"Question {question}: No instead of Yes: {yes_to_no}, Yes instead of No: {no_to_yes}")
-
-    # Print global bias statistics
-    print("\nGlobal Bias Statistics:")
-    print(f"No instead of Yes: {global_bias['yes_to_no']},  Yes instead of No: {global_bias['no_to_yes']}")
 
     # Print list of failed papers
     if failed_paper:
