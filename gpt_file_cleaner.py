@@ -1,10 +1,10 @@
 import random
-from openai import OpenAI
+import openai
 from env_manager import env
 import time
 
 # Initialize OpenAI client
-client = OpenAI(
+client = openai(
         api_key=env('API_GPT'),
     )
 
