@@ -16,8 +16,7 @@ def process_text_with_openai(filename: str, model: str, temp: float) -> str:
         model=model,
         temperature=temp,
         messages=[
-            {"role": "system", "content": prompt},
-            {"role": "user", "content": context}
+            {"role": "user", "content": prompt + context}
         ]
     )
     return response.choices[0].message.content

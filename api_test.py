@@ -8,11 +8,11 @@ def api_test():
 
     print("testing gpt api...")
     gpt_pipeline = test_gpt_pipeline()
-    print("passed" if gpt_pipeline else "error")
+    print("passed ✅" if gpt_pipeline else "error")
 
     print("testing gemini api...")
     gemini_pipeline = test_gemini_pipeline() 
-    print("passed" if gemini_pipeline else "error")
+    print("passed ✅" if gemini_pipeline else "error")
 
     return {
         "gpt": gpt_pipeline,

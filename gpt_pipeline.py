@@ -9,7 +9,7 @@ from openai.types.beta.threads.message_create_params import (
 import os
 from gpt_file_manager import get_file
 
-assistantID = "asst_C4kxoXDv5DhL3Y4kPtxHoE7n"
+assistantID = "asst_IU1BLwiptkX3J4fj5f2wRfaI"
 
 client = OpenAI(
         api_key=env('API_GPT'),
