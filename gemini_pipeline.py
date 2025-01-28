@@ -28,7 +28,7 @@ def process_file_with_gemini(prompt: str, filename: str, model: str, temperature
             break
     else:
         # Datei hochladen, falls noch nicht in der Liste vorhanden
-        sample_file = genai.upload_file(path=filename, display_name="Gemini 1.5 PDF")
+        sample_file = genai.upload_file(path=filename, display_name="Gemini PDF FILE")
         print(f"Hochgeladene Datei '{sample_file.display_name}' als: {sample_file.uri}")
 
         # Datei zur Liste hinzufügen
