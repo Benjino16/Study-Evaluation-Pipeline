@@ -1,27 +1,8 @@
 import argparse
+from compare_answers import run_comparrisson
 from evaluate_raw import evaluate_all_raw_jsons
-from compare_answers import clean_study_number
-from compare_answers import parse_json_answer
 import sys
-    
-def create_list(data):
-    result_list = []
-
-    for entry in data:
-        study_number = clean_study_number(entry['PDF_Name'])
-        for response in entry['Prompts']:
-            number = response['number']
-            answer = parse_json_answer(response['answer'])
-            quote = response['quote']
-
-            result_list.append({
-                'study_number': study_number,
-                'number': number,
-                'answer': answer,
-                'quote': quote
-            })
-    return result_list
-
+from evaluation import create_list
             
 def find_entry_by_study_and_number(result_list, study_number, number):
     for entry in result_list:
@@ -68,8 +49,12 @@ def run_reconciliation(run1: str, run2: str):
                     'model': "test",
                 }
             ])
-
-    print(mismatches)
+    result1 = run_comparrisson("correct_answers.CSV", run1, False)
+    global_matches = result1['global_matches']
+    global_total_comparisons = result1['global_total_comparisons']
+    global_match_percentage1 = (global_matches / global_total_comparisons) * 100
+    print(f"Number of missmatches: {len(mismatches)}")
+    print(f"Acc1: {global_match_percentage1}")
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')

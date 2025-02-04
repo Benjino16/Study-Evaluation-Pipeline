@@ -4,12 +4,8 @@ import sys
 import re
 from collections import defaultdict
 from evaluate_raw import evaluate_all_raw_jsons
-
-def clean_study_number(study_number):
-    """Clean study number by removing file extensions and leading zeros."""
-    study_number = study_number.replace('.pdf', '')  # Remove .pdf if it exists
-    study_number = study_number.lstrip('0')  # Remove leading zeros
-    return study_number
+from evaluation import clean_study_number
+from evaluation import parse_json_answer
 
 def load_correct_answers(csv_file):
     """Load correct answers from the CSV file into a dictionary."""
@@ -25,18 +21,6 @@ def load_correct_answers(csv_file):
             if answer != "NA":
                 correct_answers[(study_number, prompt_number)] = answer
     return correct_answers
-
-def parse_json_answer(answer):
-    """Parse the JSON answer into '1' for yes, '0' for no, or None for invalid answers."""
-    yes_answers = {"Yes", "yes"}
-    no_answers = {"No", "no"}
-
-    if answer in yes_answers:
-        return '1'
-    elif answer in no_answers:
-        return '0'
-    else:
-        return None  # Invalid answer or "No Answer"
 
 def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper):
     """Compare answers from the JSON file with the correct answers from the CSV and record bias."""
@@ -172,6 +156,35 @@ def run_comparrisson(csv: str, data: str, combine7abc: bool):
         reverse=True
     )
 
+    result = {
+        'pdf_stats': sorted_results,
+        'question_stats': question_stats,
+
+        'bias_stats': bias_stats,
+        'global_bias': global_bias,
+        'global_matches': global_matches,
+        'global_total_comparisons': global_total_comparisons,
+
+        'skipped_no_answer_in_csv': skipped_no_answer_in_csv,
+        'skipped_list': skipped_list,
+        'skipped_invalid_format': skipped_invalid_format,
+        'failed_paper': failed_paper
+    }
+    return result
+
+def print_result(result):
+
+    sorted_results = result['pdf_stats']
+    question_stats = result['question_stats']
+    global_bias = result['global_bias']
+    global_matches = result['global_matches']
+    global_total_comparisons = result['global_total_comparisons']
+    bias_stats = result['bias_stats']
+    skipped_no_answer_in_csv = result['skipped_no_answer_in_csv']
+    skipped_list = result['skipped_list']
+    skipped_invalid_format = result['skipped_invalid_format']
+    failed_paper = result['failed_paper']
+
     # Print the sorted results
     for result in sorted_results:
         if result['match_percentage'] is not None:
@@ -245,7 +258,8 @@ def main():
     parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
 
     args = parser.parse_args()
-    run_comparrisson(args.csv, args.data, args.combine7abc)
+    result = run_comparrisson(args.csv, args.data, args.combine7abc)
+    print_result(result)
 
 
 if __name__ == '__main__':
