@@ -25,17 +25,21 @@ def create_list(data):
 
     for entry in data:
         study_number = clean_study_number(entry['PDF_Name'])
+        answers = []
+
         for response in entry['Prompts']:
             number = response['number']
             answer = parse_json_answer(response['answer'])
             quote = response['quote']
-
-            result_list.append({
-                'study_number': study_number,
+            answers.append({
                 'number': number,
                 'answer': answer,
                 'quote': quote
             })
+        result_list.append({
+            'study_number': study_number,
+            'answers': answers
+        })
     return result_list
 
 def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):

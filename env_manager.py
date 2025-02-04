@@ -9,7 +9,18 @@ load_dotenv(dotenv_path)
 
 def env(key):
     return os.getenv(key)
-    
+
+def getQuestion(index: int):
+    with open(prompt_path, "r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    prompts = data["prompts"]
+
+    if 0 <= index < len(prompts):
+        return f"{prompts[index]}"
+    else:
+        raise Exception("Prompt Index out of bounds!")
+
 def getPrompt(index=None):
     with open(prompt_path, "r", encoding="utf-8") as file:
         data = json.load(file)
@@ -25,12 +36,14 @@ def getPrompt(index=None):
     else:
         raise Exception("Prompt Index out of bounds!")
 
+
 def getPromptsLength():
     with open("prompts.json", "r", encoding="utf-8") as file:
         data = json.load(file)
 
     prompts = data["prompts"]
     return len(prompts)
+
 
 if __name__ == '__main__':
     print(getPrompt())
