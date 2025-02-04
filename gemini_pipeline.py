@@ -1,9 +1,6 @@
 import os
-from env_manager import env, getPrompt
-from evaluation import evaluate_csv_string
+from env_manager import env
 import google.generativeai as genai
-import time
-from env_manager import env, getPrompt, getPromptsLength
 
 genai.configure(api_key=env('API_GEMINI'))
 
