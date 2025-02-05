@@ -11,7 +11,7 @@ import datetime
 
 # Supported Models
 VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 
-                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview']
+                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview', 'deepseek-r1:32b']
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
