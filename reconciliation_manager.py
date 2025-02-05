@@ -15,6 +15,7 @@ def find_entry_by_study(result_list, study_number, number):
 
 def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
     result = []
+    all = []
 
     data1 = evaluate_all_raw_jsons(run1, False)
     data2 = evaluate_all_raw_jsons(run2, False)
@@ -45,8 +46,7 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
 
 
             if answer1 != answer2:
-                
-                mismatches.append({
+                data = {
                     'number': number1,
                     'model1':
                     {
@@ -60,8 +60,10 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
                         'quote': quote2,
                         'model': model2,
                     }
-                })
-                
+                }
+                mismatches.append(data)
+                all.append(data)
+        if len(mismatches) != 0:
             result.append({
                 'study_number': study_number,
                 'mismatches': mismatches
@@ -71,7 +73,7 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
     global_matches = result1['global_matches']
     global_total_comparisons = result1['global_total_comparisons']
     global_match_percentage1 = (global_matches / global_total_comparisons) * 100
-    print(f"Number of missmatches: {len(mismatches)}")
+    print(f"Number of missmatches: {len(all)}")
     print(f"Acc1: {global_match_percentage1}")
     
     return result
