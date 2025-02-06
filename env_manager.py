@@ -3,6 +3,7 @@ import json
 from dotenv import load_dotenv, find_dotenv
 
 prompt_path = "prompts.json"
+pdf_path = "../Data/PDFs/"
 
 dotenv_path = find_dotenv('.env')
 load_dotenv(dotenv_path)
@@ -44,6 +45,8 @@ def getPromptsLength():
     prompts = data["prompts"]
     return len(prompts)
 
+def getPDFPath(number: str):
+    return f"{pdf_path}{number.zfill(4)}.pdf"
 
 if __name__ == '__main__':
     print(getPrompt())

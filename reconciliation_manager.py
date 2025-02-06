@@ -3,7 +3,7 @@ from compare_answers import run_comparrisson
 from evaluate_raw import evaluate_all_raw_jsons
 import sys
 from evaluation import create_list
-from reconciliation import reconciliate
+from reconciliation import reconciliate, run_reconciliation
             
 def find_entry_by_study(result_list, study_number, number):
     for study in result_list:
@@ -69,21 +69,35 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
                 'mismatches': mismatches
             })
 
-    result1 = run_comparrisson("correct_answers.CSV", run1, False)
-    global_matches = result1['global_matches']
-    global_total_comparisons = result1['global_total_comparisons']
-    global_match_percentage1 = (global_matches / global_total_comparisons) * 100
-    print(f"Number of missmatches: {len(all)}")
-    print(f"Acc1: {global_match_percentage1}")
-    
     return result
 
-def run_reconciliation(mismatches, model1: str, model2: str):
+def reconciliation_overview(mismatches, run1: str, run2: str, model1: str, model2: str):
+    count_mismatches = len(list_mismatches(mismatches))
+    
+    result1 = run_comparrisson("correct_answers.CSV", run1, False)
+    result2 = run_comparrisson("correct_answers.CSV", run2, False)
+
+    global_matches1 = result1['global_matches']
+    global_total_comparisons1 = result1['global_total_comparisons']
+    global_match_percentage1 = (global_matches1 / global_total_comparisons1) * 100
+
+    global_matches2 = result2['global_matches']
+    global_total_comparisons2 = result2['global_total_comparisons']
+    global_match_percentage2 = (global_matches2 / global_total_comparisons2) * 100
+
+    print(f"Number of missmatches: {count_mismatches}")
+    print(f"{run1:<60} {run2}")
+    print(f"{model1:<60} {model2}")
+
+
+def list_mismatches(mismatches):
+    result = []
     for study in mismatches:
         study_number = study['study_number']
         data = study['mismatches']
-        reconciliate(data, study_number, model1, model2)
-
+        for entry in data:
+            result.append(entry)
+    return result
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
@@ -91,10 +105,18 @@ def main():
     parser.add_argument('--data2', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
     parser.add_argument('--model1', type=str, required=True, help='The model that was used in first run.')
     parser.add_argument('--model2', type=str, required=True, help='The model that was used in second run.')
+    parser.add_argument('--delay', type=int, default=15, help='Delay time in seconds between processing files.')
+
     args = parser.parse_args()
 
     mismatches = evaluate_difference(args.data1, args.data2, args.model1, args.model2)
-    run_reconciliation(mismatches, args.model1, args.model2)
+    reconciliation_overview(mismatches, args.data1, args.data2, args.model1, args.model2)
+    print(mismatches)
+    eingabe = input("Drücke Enter, um die Reconciliation zu starten:")
+    if eingabe != "":
+        print("Programm wird abgebrochen.")
+        exit()
+    run_reconciliation(mismatches, args.model1, args.model2, args.delay)
 
 if __name__ == '__main__':
     main()
