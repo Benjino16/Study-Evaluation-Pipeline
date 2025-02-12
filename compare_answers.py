@@ -76,19 +76,18 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     # Return the count of skipped invalid and missing CSV entries for tracking
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
-def run_comparrisson(csv: str, data: str, combine7abc: bool):
+def run_comparrisson(csv: str, filepath: str, combine7abc: bool):
+    data = evaluate_all_raw_jsons(filepath, combine7abc)
+    if not data:
+        print(f"No files found for pattern: {filepath}")
+        sys.exit(1)
+    return compare_data(data, csv)
+
+def compare_data(data, csv: str):
 
     csv_file = csv
-    file_pattern = data
-
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
-
-    data = evaluate_all_raw_jsons(file_pattern, combine7abc)
-
-    if not data:
-        print(f"No files found for pattern: {file_pattern}")
-        sys.exit(1)
 
     global_matches = 0
     global_total_comparisons = 0

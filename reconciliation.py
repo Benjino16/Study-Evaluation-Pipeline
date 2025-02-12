@@ -17,7 +17,7 @@ def run_reconciliation(mismatches, model1: str, model2: str, delay: int):
 
 def reconciliate(data, filename: str, model1: str, model2: str):
     #Context: questions + errors + pdf
-    system = "Answer in json format. Make a list of all the numbers where you made mistakes. Below you will find a list of answers that you submitted based on the PDF. Another LLM has come to different conclusions. Check the evidence of the other model and if you come to the conclusion that you have made a mistake in your own answer, then add the number of the question to the json list."
+    system = "Answer in json format. Make a list of all the numbers where you made mistakes. Below you will find a list of answers that you submitted based on the PDF. Another LLM has come to different conclusions. Check the evidence of the other model and if you come to the conclusion that you have made a mistake in your own answer, then add the number of the question to the json list. Json: {'mistakes': [ numbers ]}"
     modelText1 = "You are 'model1' the other LLM is 'model2'!"
     modelText2 = "You are 'model2' the other LLM is 'model1'!"
     

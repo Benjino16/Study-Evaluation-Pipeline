@@ -4,8 +4,8 @@ import re
 
 def parse_json_answer(answer):
     """Parse the JSON answer into '1' for yes, '0' for no, or None for invalid answers."""
-    yes_answers = {"Yes", "yes"}
-    no_answers = {"No", "no"}
+    yes_answers = {"Yes", "yes", "1", 1}
+    no_answers = {"No", "no", "0", 0}
 
     if answer in yes_answers:
         return '1'

@@ -4,7 +4,7 @@ import re
 import os
 import argparse
 
-from compare_answers import run_comparrisson
+from compare_answers import compare_data, print_result, run_comparrisson
 from evaluate_raw import evaluate_all_raw_jsons
 from evaluation import create_list
 
@@ -82,8 +82,8 @@ def apply_reconciliation_to_data(data, reconciliation):
             })
 
         corrected_data.append({
-                'study_number': study_number,
-                'answers': answers
+                'PDF_Name': study_number,
+                'Prompts': answers
             })
     return corrected_data
 
@@ -103,6 +103,9 @@ def main():
     print(reconciliation)
     corrected_data = apply_reconciliation_to_data(list, reconciliation)
     print(corrected_data)
+
+    results = compare_data(corrected_data, "correct_answers.csv")
+    print_result(results)
 
 
 
