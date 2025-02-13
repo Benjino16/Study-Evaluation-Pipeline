@@ -8,10 +8,11 @@ import os
 import time
 import sys
 import datetime
+import traceback
 
 # Supported Models
 VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 
-                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview']
+                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview', 'deepseek-r1:32b', 'deepseek-chat', 'gemini-2.0-pro-exp-02-05']
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -103,7 +104,7 @@ def main():
             save_raw_data_as_json(last_output, os.path.basename(file_path), args.model)
 
         except Exception as e:
-            error_message = f"Error processing {file_path}: {str(e)}"
+            error_message = f"Error processing {file_path}:\n{traceback.format_exc()}"
             errors.append(error_message)
             failed_count += 1
 

@@ -1,5 +1,7 @@
 from gemini_pipeline import test_gemini_pipeline
 from gpt_pipeline import test_gpt_pipeline
+from ollama_pipeline import test_ollama_pipeline
+from gpt_text_pipeline import test_deepseek_pipeline
 
 
 def api_test():
@@ -14,9 +16,19 @@ def api_test():
     gemini_pipeline = test_gemini_pipeline() 
     print("passed ✅" if gemini_pipeline else "error")
 
+    print("testing deepseek api...")
+    deepseek_pipeline = test_deepseek_pipeline() 
+    print("passed ✅" if deepseek_pipeline else "error")
+
+    print("testing ollama api...")
+    ollama_pipeline = test_ollama_pipeline() 
+    print("passed ✅" if ollama_pipeline else "error")
+
     return {
         "gpt": gpt_pipeline,
         "gemini": gemini_pipeline,
+        "deepseek": deepseek_pipeline,
+        "ollama": ollama_pipeline,
         "local": False
     }
 

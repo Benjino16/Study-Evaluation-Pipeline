@@ -53,5 +53,6 @@ def test_gemini_pipeline():
             "This is a test call. Simply answer with the word test.",
         )
         return response.text != None
-    except:
+    except Exception as e:
+        print(e)
         return False
