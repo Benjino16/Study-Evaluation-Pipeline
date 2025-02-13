@@ -39,7 +39,7 @@ def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temper
         else:
             last_output = process_file_with_gemini( prompt, file_path, model, temperature )
 
-    elif model.lower().startswith('gpt') or model.lower().startswith('deepseek'):
+    elif model.lower().startswith('gpt') or model.lower().startswith('deepseek-chat'):
         if pdf_reader:
             last_output = process_text_with_openai( file_path, model, temperature)
         else:
