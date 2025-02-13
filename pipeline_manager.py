@@ -3,6 +3,7 @@ from env_manager import getPrompt, getPromptsLength
 from gemini_pipeline import process_file_with_gemini
 from gpt_pipeline import process_pdf_with_openai
 from gpt_text_pipeline import process_text_with_openai
+from ollama_pipeline import process_text_with_ollama
 
 def run_request(file_path: str, model: str, process_all: bool, pdf_reader: bool, delay: int, temperature: float) -> str:
 
@@ -38,7 +39,7 @@ def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temper
         else:
             last_output = process_file_with_gemini( prompt, file_path, model, temperature )
 
-    elif model.lower().startswith('gpt') or model.lower().startswith('deepseek'):
+    elif model.lower().startswith('gpt') or model.lower().startswith('deepseek-chat'):
         if pdf_reader:
             last_output = process_text_with_openai( file_path, model, temperature)
         else:
@@ -49,5 +50,10 @@ def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temper
             last_output = process_text_with_openai( file_path, model, temperature)
         else:
             exit("Eine Anfrage an ein o1 Modell ist ohne PDF-Reader nicht möglich.")
+    elif model.lower().startswith('deepseek'):
+        if pdf_reader:
+            last_output = process_text_with_ollama( file_path, model, temperature)
+        else:
+            exit("Eine Anfrage an ein ollama Modell ist ohne PDF-Reader nicht möglich.")
               
     return last_output

@@ -64,5 +64,6 @@ def test_gpt_pipeline():
             ]
         )
         return response.choices[0].message.content != None
-    except:
+    except Exception as e:
+        print(e)
         return False
