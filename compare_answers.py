@@ -95,7 +95,8 @@ def compare_data(data, csv: str):
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
 
-    required_files = papers
+    required_files = []
+    required_files.extend(papers)
 
     global_matches = 0
     global_total_comparisons = 0
@@ -261,6 +262,7 @@ def print_result(result):
     if failed_paper:
         print("\nFailed Papers (no valid comparisons):")
         print(", ".join(failed_paper))
+    if missing_paper:
         print("\nMissing Papers (no run):")
         print(", ".join(missing_paper))
 
