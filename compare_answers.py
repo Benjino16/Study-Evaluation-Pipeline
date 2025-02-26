@@ -7,6 +7,12 @@ from evaluate_raw import evaluate_all_raw_jsons
 from evaluation import clean_study_number
 from evaluation import parse_json_answer
 
+papers = [
+    "0005", "0013", "0019", "0031", "0054", "0094", "0098", "0100", "0110", "0124", "0125", "0129", "0172",
+    "0191", "0214", "0223", "0226", "0280", "0317", "0379", "0400", "0424", "0435", "0480", "0491", "0535",
+    "0541", "0646", "0665", "0705", "0714", "0732", "0760", "0819", "0827", "0837", "0887", "0891", "0935"
+]
+
 def load_correct_answers(csv_file):
     """Load correct answers from the CSV file into a dictionary."""
     correct_answers = {}
@@ -89,6 +95,8 @@ def compare_data(data, csv: str):
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
 
+    required_files = papers
+
     global_matches = 0
     global_total_comparisons = 0
     skipped_invalid_format = 0  # Counter for invalid format answers
@@ -120,6 +128,8 @@ def compare_data(data, csv: str):
         matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv = compare_answers(
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
+
+        required_files.remove(entry['PDF_Name'])
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format
@@ -167,7 +177,8 @@ def compare_data(data, csv: str):
         'skipped_no_answer_in_csv': skipped_no_answer_in_csv,
         'skipped_list': skipped_list,
         'skipped_invalid_format': skipped_invalid_format,
-        'failed_paper': failed_paper
+        'failed_paper': failed_paper,
+        'missing_paper': required_files
     }
     return result
 
@@ -183,6 +194,7 @@ def print_result(result):
     skipped_list = result['skipped_list']
     skipped_invalid_format = result['skipped_invalid_format']
     failed_paper = result['failed_paper']
+    missing_paper = result['missing_paper']
 
     # Print the sorted results
     for result in sorted_results:
@@ -249,6 +261,8 @@ def print_result(result):
     if failed_paper:
         print("\nFailed Papers (no valid comparisons):")
         print(", ".join(failed_paper))
+        print("\nMissing Papers (no run):")
+        print(", ".join(missing_paper))
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
