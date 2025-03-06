@@ -14,7 +14,7 @@ def read_reconciliation(string: str):
         json_data = match.group(1)
         try:
             data = json.loads(json_data)
-            return data.get("mistakes", [])
+            return [mistake["number"] for mistake in data.get("mistakes", []) if "number" in mistake]
         except json.JSONDecodeError:
             pass
     return []
@@ -87,27 +87,44 @@ def apply_reconciliation_to_data(data, reconciliation):
             })
     return corrected_data
 
+def combine_reconciliation(reconciliation, reconciliation2):
+    numbers_in_rec2 = {mistake for entry in reconciliation2 for mistake in entry['mistakes']}
+    filtered_reconciliation = []
+    
+    for entry in reconciliation:
+        filtered_mistakes = [num for num in entry['mistakes'] if num not in numbers_in_rec2]
+        if filtered_mistakes:
+            filtered_reconciliation.append({'study_number': entry['study_number'], 'mistakes': filtered_mistakes})
+    
+    return filtered_reconciliation
+
+
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
     parser.add_argument('--csv', type=str, required=True, help='The csv that the results should be compared to.')
     parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
     parser.add_argument('--rec', type=str, required=True, help='Files or patterns to process (supports globbing).')
-    parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
+    parser.add_argument('--rec2', type=str, required=False, help='Add a second reconciliation run.')
 
     args = parser.parse_args()
-    
+
     data = evaluate_all_raw_jsons(args.data, False)
     list = create_list(data)
 
     reconciliation = evaluate_reconciliation(args.rec)
     print(reconciliation)
+    if args.rec2:
+        reconciliation2 = evaluate_reconciliation(args.rec2)
+        print(reconciliation2)
+        reconciliation = combine_reconciliation(reconciliation, reconciliation2)
+
+
+
     corrected_data = apply_reconciliation_to_data(list, reconciliation)
     print(corrected_data)
 
     results = compare_data(corrected_data, "correct_answers.csv")
     print_result(results)
-
-
 
 if __name__ == '__main__':
     main()

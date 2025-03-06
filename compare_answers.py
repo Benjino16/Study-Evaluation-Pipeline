@@ -115,8 +115,7 @@ def compare_data(data, csv: str):
     # Dictionary to store detailed statistics (study numbers) for each question (prompt)
     detailed_stats = defaultdict(lambda: {'yes_to_no': [], 'no_to_yes': []})
 
-
-    print(f"\nFile statistics:")
+    
     # Global bias counters
     global_bias = {'yes_to_no': 0, 'no_to_yes': 0}
 
@@ -130,7 +129,7 @@ def compare_data(data, csv: str):
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
 
-        required_files.remove(entry['PDF_Name'])
+        #required_files.remove(entry['PDF_Name'])
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format

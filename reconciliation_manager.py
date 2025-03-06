@@ -88,6 +88,7 @@ def reconciliation_overview(mismatches, run1: str, run2: str, model1: str, model
     print(f"Number of missmatches: {count_mismatches}")
     print(f"{run1:<60} {run2}")
     print(f"{model1:<60} {model2}")
+    print(f"{global_match_percentage1:<60} {global_match_percentage2}")
 
 
 def list_mismatches(mismatches):
