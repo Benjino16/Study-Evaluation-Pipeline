@@ -4,12 +4,14 @@ import sys
 import re
 from collections import defaultdict
 from evaluate_raw import evaluate_all_raw_jsons
+from evaluation import clean_study_number
+from evaluation import parse_json_answer
 
-def clean_study_number(study_number):
-    """Clean study number by removing file extensions and leading zeros."""
-    study_number = study_number.replace('.pdf', '')  # Remove .pdf if it exists
-    study_number = study_number.lstrip('0')  # Remove leading zeros
-    return study_number
+papers = [
+    "0005", "0013", "0019", "0031", "0054", "0094", "0098", "0100", "0110", "0124", "0125", "0129", "0172",
+    "0191", "0214", "0223", "0226", "0280", "0317", "0379", "0400", "0424", "0435", "0480", "0491", "0535",
+    "0541", "0646", "0665", "0705", "0714", "0732", "0760", "0819", "0827", "0837", "0887", "0891", "0935"
+]
 
 def load_correct_answers(csv_file):
     """Load correct answers from the CSV file into a dictionary."""
@@ -25,18 +27,6 @@ def load_correct_answers(csv_file):
             if answer != "NA":
                 correct_answers[(study_number, prompt_number)] = answer
     return correct_answers
-
-def parse_json_answer(answer):
-    """Parse the JSON answer into '1' for yes, '0' for no, or None for invalid answers."""
-    yes_answers = {"Yes", "yes"}
-    no_answers = {"No", "no"}
-
-    if answer in yes_answers:
-        return '1'
-    elif answer in no_answers:
-        return '0'
-    else:
-        return None  # Invalid answer or "No Answer"
 
 def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper):
     """Compare answers from the JSON file with the correct answers from the CSV and record bias."""
@@ -92,19 +82,21 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     # Return the count of skipped invalid and missing CSV entries for tracking
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
-def run_comparrisson(csv: str, data: str, combine7abc: bool):
+def run_comparrisson(csv: str, filepath: str, combine7abc: bool):
+    data = evaluate_all_raw_jsons(filepath, combine7abc)
+    if not data:
+        print(f"No files found for pattern: {filepath}")
+        sys.exit(1)
+    return compare_data(data, csv)
+
+def compare_data(data, csv: str):
 
     csv_file = csv
-    file_pattern = data
-
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
 
-    data = evaluate_all_raw_jsons(file_pattern, combine7abc)
-
-    if not data:
-        print(f"No files found for pattern: {file_pattern}")
-        sys.exit(1)
+    required_files = []
+    required_files.extend(papers)
 
     global_matches = 0
     global_total_comparisons = 0
@@ -123,8 +115,7 @@ def run_comparrisson(csv: str, data: str, combine7abc: bool):
     # Dictionary to store detailed statistics (study numbers) for each question (prompt)
     detailed_stats = defaultdict(lambda: {'yes_to_no': [], 'no_to_yes': []})
 
-
-    print(f"\nFile statistics:")
+    
     # Global bias counters
     global_bias = {'yes_to_no': 0, 'no_to_yes': 0}
 
@@ -137,6 +128,8 @@ def run_comparrisson(csv: str, data: str, combine7abc: bool):
         matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv = compare_answers(
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
+
+        #required_files.remove(entry['PDF_Name'])
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format
@@ -171,6 +164,37 @@ def run_comparrisson(csv: str, data: str, combine7abc: bool):
         key=lambda x: x['match_percentage'] if x['match_percentage'] is not None else -1,
         reverse=True
     )
+
+    result = {
+        'pdf_stats': sorted_results,
+        'question_stats': question_stats,
+
+        'bias_stats': bias_stats,
+        'global_bias': global_bias,
+        'global_matches': global_matches,
+        'global_total_comparisons': global_total_comparisons,
+
+        'skipped_no_answer_in_csv': skipped_no_answer_in_csv,
+        'skipped_list': skipped_list,
+        'skipped_invalid_format': skipped_invalid_format,
+        'failed_paper': failed_paper,
+        'missing_paper': required_files
+    }
+    return result
+
+def print_result(result):
+
+    sorted_results = result['pdf_stats']
+    question_stats = result['question_stats']
+    global_bias = result['global_bias']
+    global_matches = result['global_matches']
+    global_total_comparisons = result['global_total_comparisons']
+    bias_stats = result['bias_stats']
+    skipped_no_answer_in_csv = result['skipped_no_answer_in_csv']
+    skipped_list = result['skipped_list']
+    skipped_invalid_format = result['skipped_invalid_format']
+    failed_paper = result['failed_paper']
+    missing_paper = result['missing_paper']
 
     # Print the sorted results
     for result in sorted_results:
@@ -237,6 +261,9 @@ def run_comparrisson(csv: str, data: str, combine7abc: bool):
     if failed_paper:
         print("\nFailed Papers (no valid comparisons):")
         print(", ".join(failed_paper))
+    if missing_paper:
+        print("\nMissing Papers (no run):")
+        print(", ".join(missing_paper))
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
@@ -245,7 +272,8 @@ def main():
     parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
 
     args = parser.parse_args()
-    run_comparrisson(args.csv, args.data, args.combine7abc)
+    result = run_comparrisson(args.csv, args.data, args.combine7abc)
+    print_result(result)
 
 
 if __name__ == '__main__':

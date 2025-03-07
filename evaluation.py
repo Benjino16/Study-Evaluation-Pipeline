@@ -2,6 +2,46 @@ import io
 import csv
 import re
 
+def parse_json_answer(answer):
+    """Parse the JSON answer into '1' for yes, '0' for no, or None for invalid answers."""
+    yes_answers = {"Yes", "yes", "1", 1}
+    no_answers = {"No", "no", "0", 0}
+
+    if answer in yes_answers:
+        return '1'
+    elif answer in no_answers:
+        return '0'
+    else:
+        return None  # Invalid answer or "No Answer"
+
+def clean_study_number(study_number):
+    """Clean study number by removing file extensions and leading zeros."""
+    study_number = study_number.replace('.pdf', '')  # Remove .pdf if it exists
+    study_number = study_number.lstrip('0')  # Remove leading zeros
+    return study_number
+
+def create_list(data):
+    result_list = []
+
+    for entry in data:
+        study_number = clean_study_number(entry['PDF_Name'])
+        answers = []
+
+        for response in entry['Prompts']:
+            number = response['number']
+            answer = parse_json_answer(response['answer'])
+            quote = response['quote']
+            answers.append({
+                'number': number,
+                'answer': answer,
+                'quote': quote
+            })
+        result_list.append({
+            'study_number': study_number,
+            'answers': answers
+        })
+    return result_list
+
 def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):
     try:
         valid_question_numbers = ['1', '2', '3', '4', '5', '6', '7a', '7b', '7c', '8', '9', '10', '11', '12']

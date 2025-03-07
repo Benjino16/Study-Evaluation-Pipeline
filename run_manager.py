@@ -1,7 +1,7 @@
 import os
 import platform
 import argparse
-from compare_answers import run_comparrisson
+from compare_answers import run_comparrisson, print_result
 
 def clear_console():
     # Funktion zum Leeren der Konsole, abhängig vom Betriebssystem
@@ -72,7 +72,8 @@ def main():
             clear_console()
 
             # Methode aus compare_answers.py aufrufen
-            run_comparrisson(csv, data, combine7abc)
+            result = run_comparrisson(csv, data, combine7abc)
+            print_result(result)
 
             # Nach der Ausführung warten, um zurückzukehren oder zu beenden
             print("\nAktion abgeschlossen. Was möchten Sie tun?")
