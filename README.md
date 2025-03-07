@@ -12,7 +12,7 @@ A streamlined pipeline that uploads PDFs to Gemini/OpenAI, where language models
    Clone this repository to your local machine.
    
    ```bash
-   git clone https://github.com/yourusername/Study-Evaluation-Pipeline.git
+   git clone https://github.com/Benjino16/Study-Evaluation-Pipeline.git
    cd Study-Evaluation-Pipeline
    ```
 
