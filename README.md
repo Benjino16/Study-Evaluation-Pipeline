@@ -38,7 +38,27 @@ A streamlined pipeline that uploads PDFs to Gemini/OpenAI, where language models
    python api_test.py
    ```
 
-### Usage
-Once setup is complete, you can start the pipeline to upload and evaluate PDFs, then save the responses as CSVs for analysis.
 
+### Commands  
 **Note:** Ensure that your API limits are checked, as processing large volumes may impact usage quotas on Gemini/OpenAI.
+
+1. **Start Run**  
+   ```bash
+   python main.py --model <string> --files <path> --delay <integer> --temp <float> <--process_all> <--pdf_reader>
+   ```  
+   `--model` the name of the model (supported models are listed in main.py)  
+   `--files` the path to the PDF files (supports globbing)  
+   `--delay` delay in seconds to wait between API requests  
+   `--temp` the temperature of the model (not all models support all temperatures)  
+   `--process_all` use this flag if all prompts should be put into a single API request (will be replaced in the future)  
+   `--pdf_reader` this flag enables the local PDF reader. Only the text of the PDF will be passed to the API in the model's content window.  
+
+2. **Evaluate Answers**  
+   ```bash
+   python compare_answers.py --csv <string> --data <string>
+   ```  
+   `--csv` the path to the CSV with the correct answers  
+   `--data` the run data (stored in '../Data/Results')  
+
+### Examples  
+The following examples show how the pipeline is managed.
