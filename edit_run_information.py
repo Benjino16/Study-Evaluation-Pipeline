@@ -12,9 +12,9 @@ def clear_console():
         os.system("clear")
 
 def read_json_from_folder(folder_path):
-    """Liest die erste nicht versteckte JSON-Datei in einem Ordner und gibt die relevanten Daten zurück."""
+    """Liest die erste gefundene JSON-Datei in einem Ordner und gibt die relevanten Daten zurück."""
     for file in os.listdir(folder_path):
-        if file.endswith(".json") and not file.startswith("."):
+        if file.endswith(".json"):
             file_path = os.path.join(folder_path, file)
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
@@ -48,26 +48,31 @@ def main():
 
     while True:
         clear_console()
-        folder_list = [f for f in os.listdir(base_directory) if os.path.isdir(os.path.join(base_directory, f)) and not f.startswith(".")]
+        folder_list = [f for f in os.listdir(base_directory) if os.path.isdir(os.path.join(base_directory, f))]
 
         if not folder_list:
-            print("Es wurden keine gültigen Unterordner gefunden.")
+            print("Es wurden keine Unterordner gefunden.")
             return
 
         print("\nDurchlauf-Übersicht:")
         table_data = []
-        for i, folder in enumerate(folder_list, start=1):
+        for folder in folder_list:
             folder_path = os.path.join(base_directory, folder)
             json_data = read_json_from_folder(folder_path)
             if json_data:
-                table_data.append([i, folder] + list(json_data.values()))
+                table_data.append([folder] + list(json_data.values()))
 
-        headers = ["Nr.", "Folder", "Model Name", "Temperature", "Version", "Date", "PDF Reader", "Process Mode"]
+        headers = ["Folder", "Model Name", "Temperature", "Version", "Date", "PDF Reader", "Process Mode"]
         print(tabulate(table_data, headers=headers, tablefmt="grid"))
 
+        print("\nBitte wählen Sie einen der folgenden Ordner aus (oder beenden Sie das Programm):")
+        for i, folder in enumerate(folder_list, start=1):
+            print(f"{i}. {folder}")
+        print(f"{len(folder_list) + 1}. Programm beenden")
+
         try:
-            choice = int(input("\nGeben Sie die Nummer des gewünschten Durchlaufs ein (oder 0 zum Beenden): ")) - 1
-            if choice == -1:
+            choice = int(input("\nGeben Sie die Nummer des gewünschten Ordners ein: ")) - 1
+            if choice == len(folder_list):
                 print("Das Programm wird beendet.")
                 break
             if choice < 0 or choice >= len(folder_list):
@@ -81,7 +86,14 @@ def main():
             result = run_comparrisson(csv, data, combine7abc)
             print_result(result)
 
-            input("\nDrücken Sie die Eingabetaste, um zur Übersicht zurückzukehren...")
+            print("\nAktion abgeschlossen. Was möchten Sie tun?")
+            print("1. Zurück zur Ordnerliste")
+            print("2. Programm beenden")
+
+            next_action = input("\nGeben Sie die Nummer Ihrer Wahl ein: ")
+            if next_action == "2":
+                print("Das Programm wird beendet.")
+                break
         except ValueError:
             print("Ungültige Eingabe. Bitte geben Sie eine Zahl ein.")
             input("Drücken Sie die Eingabetaste, um fortzufahren...")
