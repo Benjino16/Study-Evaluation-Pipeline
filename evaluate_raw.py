@@ -14,17 +14,36 @@ def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
         if 'Raw_Data' not in raw_data or 'PDF_Name' not in raw_data or 'Model_Name' not in raw_data:
             return
         
-        raw_answer_string = raw_data['Raw_Data']
-        pdf_name = raw_data['PDF_Name']
-        model_name = raw_data['Model_Name']
+        version = raw_data.get('Version', 0)
 
-        temperature = raw_data['Temperature']
-        date = raw_data['Date']
-        pdf_reader = raw_data['PDF_Reader']
-        pdf_reader_version = raw_data['PDF_Reader_Version']
-        process_mode = raw_data['Process_Mode']
-        prompt = raw_data['Prompt']
-        
+        raw_answer_string = raw_data.get('Raw_Data', '-')
+        pdf_name = raw_data.get('PDF_Name', '-')
+        model_name = raw_data.get('Model_Name', '-')
+
+        # standart values
+        temperature = "-"
+        date = "-"
+        pdf_reader = "-"
+        process_mode = "-"
+        prompt = "-"
+        pdf_reader_version = "-"
+
+        # depends on version
+        if version >= 1.0:
+            temperature = raw_data.get('Temperature', '-')
+            date = raw_data.get('Date', '-')
+            pdf_reader_version = raw_data.get('PDF_Reader', '-')
+            if pdf_reader_version == "api-upload":
+                pdf_reader = False
+                pdf_reader_version = "-"
+            else: 
+                pdf_reader = True
+            process_mode = raw_data.get('Process_Mode', '-')
+
+        if version == 2.0:
+            prompt = raw_data.get('Prompt', '-')
+            pdf_reader_version = raw_data.get('PDF_Reader_Version', '-')
+
         answers_json = parse_csv_string_to_json(raw_answer_string, combine_7abc=combine_7abc)
 
         data = {
@@ -39,8 +58,9 @@ def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
             "Raw_Data": raw_answer_string,
             "Prompt": prompt
         }
-        
+
         return data
+
     
     except Exception as e:
         print(f"Fehler beim Verarbeiten der Datei {raw_json_path}: {e}")

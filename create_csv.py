@@ -23,6 +23,7 @@ def create_csv(file_pattern, run_id, output_file=None):
 
             correct_answer = correct_answers[(study_number, question_number)]
             row = {
+                #general information of the run
                 'run': run_id,
                 'model_name': entry.get('Model_Name', 'N/A'),
                 'temp': entry.get('Temperature', 'N/A'),
@@ -30,13 +31,16 @@ def create_csv(file_pattern, run_id, output_file=None):
                 "pdf_reader_version": entry.get('PDF_Reader_Version', 'N/A'),
                 "process_mode": entry.get('Process_Mode', 'N/A'),
 
+                #information related to specific study
                 'pdf_name': study_number,
                 "date": entry.get('Date', 'N/A'),
                 "raw_answer": entry.get('Raw_Data', 'N/A'),
 
+                #information related to a specific question
                 'number': question_number,
                 'answer': response.get('answer', 'N/A'),
                 'explanation': response.get('quote', 'N/A'),
+                
                 
                 'answer_parsed': parse_json_answer(response.get('answer', 'N/A')),
                 'correct_answer': correct_answer
