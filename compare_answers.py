@@ -24,8 +24,8 @@ def load_correct_answers(csv_file):
             answer = row['answer']
 
             # Ignore rows with NA answers
-            #if answer != "NA":
-            correct_answers[(study_number, prompt_number)] = answer
+            if answer != "NA":
+                correct_answers[(study_number, prompt_number)] = answer
     return correct_answers
 
 def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper):
@@ -129,7 +129,7 @@ def compare_data(data, csv: str):
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
 
-        #required_files.remove(entry['PDF_Name'])
+        required_files.remove(entry['PDF_Name'])
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format

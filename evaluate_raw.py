@@ -8,7 +8,7 @@ def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
         return
     
     try:
-        with open(raw_json_path, 'r') as f:
+        with open(raw_json_path, 'r', encoding='utf-8') as f:
             raw_data = json.load(f)
         
         if 'Raw_Data' not in raw_data or 'PDF_Name' not in raw_data or 'Model_Name' not in raw_data:
