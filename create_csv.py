@@ -24,11 +24,20 @@ def create_csv(file_pattern, run_id, output_file=None):
             correct_answer = correct_answers[(study_number, question_number)]
             row = {
                 'run': run_id,
-                'pdf_name': study_number,
                 'model_name': entry.get('Model_Name', 'N/A'),
+                'temp': entry.get('Temperature', 'N/A'),
+                "pdf_reader": entry.get('PDF_Reader', 'N/A'),
+                "pdf_reader_version": entry.get('PDF_Reader_Version', 'N/A'),
+                "process_mode": entry.get('Process_Mode', 'N/A'),
+
+                'pdf_name': study_number,
+                "date": entry.get('Date', 'N/A'),
+                "raw_answer": entry.get('Raw_Data', 'N/A'),
+
                 'number': question_number,
                 'answer': response.get('answer', 'N/A'),
                 'explanation': response.get('quote', 'N/A'),
+                
                 'answer_parsed': parse_json_answer(response.get('answer', 'N/A')),
                 'correct_answer': correct_answer
             }
@@ -42,7 +51,22 @@ def create_csv(file_pattern, run_id, output_file=None):
     file_exists = os.path.exists(output_file)
 
     with open(output_file, 'a' if file_exists else 'w', newline='', encoding='utf-8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=['run', 'pdf_name', 'model_name', 'number', 'answer', 'explanation', 'answer_parsed', 'correct_answer'])
+        writer = csv.DictWriter(csvfile, fieldnames=[
+            'run',
+            'model_name',
+            'temp',
+            'pdf_reader',
+            'pdf_reader_version',
+            'process_mode',
+            'pdf_name',
+            'date',
+            'raw_answer',
+            'number',
+            'answer',
+            'explanation',
+            'answer_parsed',
+            'correct_answer'
+        ])
         if not file_exists:
             writer.writeheader()
         for row in rows:

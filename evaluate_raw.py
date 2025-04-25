@@ -25,9 +25,22 @@ def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
         process_mode = raw_data['Process_Mode']
         prompt = raw_data['Prompt']
         
+        answers_json = parse_csv_string_to_json(raw_answer_string, combine_7abc=combine_7abc)
 
+        data = {
+            "PDF_Name": pdf_name,
+            "Model_Name": model_name,
+            "Prompts": answers_json,
+            "Temperature": temperature,
+            "Date": date,
+            "PDF_Reader": pdf_reader,
+            "PDF_Reader_Version": pdf_reader_version,
+            "Process_Mode": process_mode,
+            "Raw_Data": raw_answer_string,
+            "Prompt": prompt
+        }
         
-        return parse_csv_string_to_json(raw_answer_string, pdf_name, model_name, combine_7abc=combine_7abc)
+        return data
     
     except Exception as e:
         print(f"Fehler beim Verarbeiten der Datei {raw_json_path}: {e}")
