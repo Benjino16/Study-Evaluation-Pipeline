@@ -5,7 +5,7 @@ from evaluate_raw import evaluate_all_raw_jsons
 from compare_answers import load_correct_answers
 from evaluation import parse_json_answer, clean_study_number
 
-def create_csv(file_pattern, run_number, output_file=None):
+def create_csv(file_pattern, run_id, output_file=None):
 
     data = evaluate_all_raw_jsons(file_pattern, False)
     correct_answers = load_correct_answers("correct_answers.CSV")
@@ -23,7 +23,7 @@ def create_csv(file_pattern, run_number, output_file=None):
 
             correct_answer = correct_answers[(study_number, question_number)]
             row = {
-                'run': run_number,
+                'run': run_id,
                 'pdf_name': study_number,
                 'model_name': entry.get('Model_Name', 'N/A'),
                 'number': question_number,

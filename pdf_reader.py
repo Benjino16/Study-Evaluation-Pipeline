@@ -1,4 +1,5 @@
 from pypdf import PdfReader
+import pypdf
 import re
 
 def remove_urls(text):
@@ -16,3 +17,7 @@ def get_text_from_pdf(filepath: str) -> str:
         full_text += text_without_url
 
     return full_text
+
+def get_pdf_reader_version() -> str:
+    """Returns the current version of the pdf reader as string"""
+    return f"pypdf {pypdf.__version__}"
