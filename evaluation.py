@@ -42,7 +42,7 @@ def create_list(data):
         })
     return result_list
 
-def evaluate_csv_string(csv_string, pdf_name, model_name, combine_7abc=False):
+def parse_csv_string_to_json(csv_string, pdf_name, model_name, combine_7abc=False):
     try:
         valid_question_numbers = ['1', '2', '3', '4', '5', '6', '7a', '7b', '7c', '8', '9', '10', '11', '12']
         combine_questions = ['7a', '7b', '7c']  # Fragen, die zusammengefasst werden können
