@@ -11,6 +11,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 def create_csv(file_pattern, run_id, output_file=None):
+    """Creates a CSV file from a run, which contains all useful information of the run in long format.
+    If there is already a file with the name, the content is appended."""
 
     data = load_saved_jsons(file_pattern, False)
     correct_answers = load_correct_answers("correct_answers.CSV")
@@ -84,6 +86,8 @@ def create_csv(file_pattern, run_id, output_file=None):
     logging.info("Created csv for " + file_pattern)
 
 def loop_runs(dir, csv_name):
+    """loops through several runs and creates a CSV from them."""
+    
     if not os.path.isdir(dir):
             logging.error(f"The directory {dir} does not exist.")
             return

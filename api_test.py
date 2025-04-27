@@ -7,7 +7,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 def api_test():
-
+    """
+    Sends a test request to the various APIs to see if the service is available.
+    """
     logging.info("---- API Test ----")
 
     logging.info("testing gpt api...")

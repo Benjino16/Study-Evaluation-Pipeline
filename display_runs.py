@@ -15,7 +15,7 @@ def clear_console():
         os.system("clear")
 
 def read_json_from_folder(folder_path):
-    """Liest die erste nicht versteckte JSON-Datei in einem Ordner und gibt die relevanten Daten zurück."""
+    """Reads the first non-hidden JSON file in a folder and returns the relevant data."""
     for file in os.listdir(folder_path):
         if file.endswith(".json") and not file.startswith("."):
             file_path = os.path.join(folder_path, file)
@@ -37,6 +37,7 @@ def read_json_from_folder(folder_path):
     return None
 
 def show_selection_menu(base_directory) -> str:
+    """Shows a menu with all runs that are in the base_directory. The user can select one of them. The path of the selected run is returned."""
     if not os.path.isdir(base_directory):
         logging.error(f"The directory {base_directory} does not exist.")
         return

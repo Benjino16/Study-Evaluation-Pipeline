@@ -10,7 +10,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 def create_csv(file_pattern, run_id, output_file=None):
-
+    """
+    Creates a CSV file from the provided JSON data and correct answers.
+    """
     data = load_saved_jsons(file_pattern, False)
     correct_answers = load_correct_answers("correct_answers.CSV")
 
@@ -83,6 +85,13 @@ def create_csv(file_pattern, run_id, output_file=None):
     logging.info("Created csv for " + file_pattern)
 
 def loop_runs(dir, csv_name):
+    """
+    Loops through all subfolders in the specified directory and creates a CSV for each run.
+
+    Arguments:
+    dir -- directory containing the subfolders with the run data
+    csv_name -- name of the output CSV file
+    """
     if not os.path.isdir(dir):
         logging.error(f"The directory {dir} does not exist.")
         return

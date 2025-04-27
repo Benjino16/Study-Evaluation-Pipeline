@@ -5,6 +5,8 @@ import os
 import argparse
 import logging
 
+"""This script takes care of the evaluation of reconciliation runs."""
+
 from compare_answers import compare_data, print_result, run_comparison
 from load_saved_json import load_saved_jsons
 from evaluation import create_list
@@ -13,6 +15,7 @@ from evaluation import create_list
 logging.basicConfig(level=logging.INFO)
 
 def read_reconciliation(string: str):
+    """This script parses a json string gained from a comparison with an AI into a well-formatted json, which can then be further evaluated."""
     match = re.search(r'```json\s*(.*?)\s*```', string, re.DOTALL)
     if match:
         json_data = match.group(1)
@@ -24,6 +27,7 @@ def read_reconciliation(string: str):
     return []
 
 def evaluate_reconciliation(file_pattern: str):
+    """Evaluates a reconciliation dataset retrieved from the specified file pattern."""
     result = []
     files_to_process = []
     files_to_process.extend(glob.glob(file_pattern))
@@ -56,6 +60,7 @@ def evaluate_reconciliation(file_pattern: str):
     return result
 
 def search_in_rec(reconciliation, study_number, number) -> bool:
+    """Checks whether an error has been corrected (exists) in a reconciliation data record."""
     for entry in reconciliation:
         if entry['study_number'] == study_number:
             for entry_number in entry['mistakes']:
@@ -65,6 +70,8 @@ def search_in_rec(reconciliation, study_number, number) -> bool:
 
 
 def apply_reconciliation_to_data(data, reconciliation):
+    """The reconciliation data set is applied to the normal data set. This means that the error correction of the AI is carried out.
+    Returns the dataset with the corrected data."""
     corrected_data = []
     for study in data:
         study_number = study['study_number']
@@ -93,6 +100,12 @@ def apply_reconciliation_to_data(data, reconciliation):
     return corrected_data
 
 def combine_reconciliation(reconciliation, reconciliation2):
+    """
+    Filters out mistakes in the first reconciliation list that are present in the second reconciliation list.
+
+    Returns:
+        list of dict: A filtered list of dictionaries from the first reconciliation, with mistakes already present in the second reconciliation removed.
+    """
     numbers_in_rec2 = {mistake for entry in reconciliation2 for mistake in entry['mistakes']}
     filtered_reconciliation = []
     

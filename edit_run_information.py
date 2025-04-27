@@ -3,6 +3,8 @@ import platform
 import argparse
 import json
 
+"""This script is deprecated and will be removed in the future."""
+
 def clear_console():
     if platform.system() == "Windows":
         os.system("cls")

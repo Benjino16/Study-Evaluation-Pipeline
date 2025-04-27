@@ -4,6 +4,8 @@ from env_manager import env
 import time
 import logging
 
+"""This code is deprecated and will be removed in the future."""
+
 logging.basicConfig(level=logging.INFO)
 
 

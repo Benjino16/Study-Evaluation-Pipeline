@@ -3,17 +3,21 @@ import sys
 import os
 import logging
 
+"""
+With the help of this script you can summarize the answers of 7a, 7b and 7c in a CSVs and JSONs.
+"""
+
 logging.basicConfig(level=logging.INFO)
 
 def combine_7abc(study_rows):
     """
-    Kombiniert die Antworten für 7a, 7b, und 7c zu einer Antwort für 7.
-    Wenn alle Antworten '1' sind, wird '1' zurückgegeben, bei mindestens einer '0' wird '0' zurückgegeben.
-    'NA' wird ignoriert, wenn es andere gültige Antworten gibt.
+    With the help of this script you can combine the answers from 7a, 7b and 7c into a CSV and create a new CSV from it.
+    If all answers are '1', '1' is returned, if at least one is '0', '0' is returned.
+    NA' is ignored if there are other valid answers.  
     """
     answers = {'7a': 'NA', '7b': 'NA', '7c': 'NA'}
 
-    # Antworten für 7a, 7b, 7c aus den rows extrahieren
+    # Extract answers for 7a, 7b, 7c from the rows
     for row in study_rows:
         if row['prompt_number'] in answers:
             answers[row['prompt_number']] = row['answer']
@@ -32,12 +36,13 @@ def combine_7abc(study_rows):
     return 'NA'
 
 def process_csv(input_csv, output_csv):
-    """Liest die CSV-Datei, fasst 7a, 7b und 7c zusammen und schreibt sie in eine neue CSV-Datei."""
+    """Reads the CSV file, combines 7a, 7b and 7c and writes them to a new CSV file."""
+
     with open(input_csv, newline='') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         fieldnames = reader.fieldnames
         
-        # Neue CSV-Datei erstellen
+        # create new csv file
         with open(output_csv, 'w', newline='') as new_csvfile:
             writer = csv.DictWriter(new_csvfile, fieldnames=fieldnames, delimiter=';')
             writer.writeheader()
@@ -45,33 +50,31 @@ def process_csv(input_csv, output_csv):
             current_study = None
             study_rows = []
 
-            # Zeilenweise durch das Original gehen
+            # loop through each row
             for row in reader:
                 study_number = row['study_number']
                 prompt_number = row['prompt_number']
                 
-                # Wenn wir zu einer neuen Studie wechseln, verarbeite die vorherige Studie
+                # processes the previous study, once the current one changes
                 if study_number != current_study:
                     if current_study is not None:
-                        # Verarbeite die Zeilen der aktuellen Studie
                         process_study(writer, study_rows)
 
-                    # Neue Studie beginnen
                     current_study = study_number
                     study_rows = [row]
                 else:
                     study_rows.append(row)
 
-            # Verarbeite die letzte Studie
             if study_rows:
                 process_study(writer, study_rows)
 
 def process_study(writer, study_rows):
-    """Verarbeitet eine einzelne Studie, fasst 7a, 7b, 7c zu 7 zusammen und schreibt das Ergebnis."""
+    """Processes a single study, summarizes 7a, 7b, 7c to 7 and writes the result."""
+
     new_rows = []
     found_7abc = False
     
-    # Gehe alle Zeilen der Studie durch und behalte Zeilen außer 7a, 7b, 7c bei
+    # Go through all lines of the study and keep lines except 7a, 7b, 7c
     for row in study_rows:
         prompt_number = row['prompt_number']
         
@@ -80,7 +83,7 @@ def process_study(writer, study_rows):
         else:
             new_rows.append(row)
     
-    # Wenn 7a, 7b, 7c vorhanden waren, kombiniere sie zu einer neuen Zeile für 7
+    # If 7a, 7b, 7c were present, combine them into a new line for 7
     if found_7abc:
         combined_answer = combine_7abc(study_rows)
         new_rows.append({
@@ -89,7 +92,7 @@ def process_study(writer, study_rows):
             'answer': combined_answer
         })
 
-    # Schreibe die neuen Zeilen in die Ausgabe
+    # Write the new lines to the output
     for new_row in new_rows:
         writer.writerow(new_row)
 
@@ -103,7 +106,7 @@ def main():
     if not os.path.isfile(input_csv):
         raise ValueError(f"File {input_csv} not found.")
 
-    # CSV verarbeiten und 7a, 7b, 7c kombinieren
+    # Process CSV and combine 7a, 7b, 7c
     process_csv(input_csv, output_csv)
     logging.info(f"CSV-Prozess completed. File was created as: {output_csv}")
 

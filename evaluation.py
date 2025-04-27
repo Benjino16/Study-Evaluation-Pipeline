@@ -46,6 +46,7 @@ def create_list(data):
     return result_list
 
 def parse_csv_string_to_json(csv_string, combine_7abc=False):
+    """This function gets a csv string and parses it to a well-formatted json."""
     try:
         valid_question_numbers = ['1', '2', '3', '4', '5', '6', '7a', '7b', '7c', '8', '9', '10', '11', '12']
         combine_questions = ['7a', '7b', '7c']  # Fragen, die zusammengefasst werden können

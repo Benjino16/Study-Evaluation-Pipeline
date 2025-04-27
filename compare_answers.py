@@ -8,8 +8,12 @@ from evaluation import clean_study_number
 from evaluation import parse_json_answer
 import logging
 
+"""This script can be used to evaluate saved responses from the AI models."""
+
+
 logging.basicConfig(level=logging.INFO)
 
+# Papers that should be in the run
 papers = [
     "0005", "0013", "0019", "0031", "0054", "0094", "0098", "0100", "0110", "0124", "0125", "0129", "0172",
     "0191", "0214", "0223", "0226", "0280", "0317", "0379", "0400", "0424", "0435", "0480", "0491", "0535",
@@ -92,7 +96,13 @@ def run_comparison(csv: str, filepath: str, combine7abc: bool):
     return compare_data(data, csv)
 
 def compare_data(data, csv: str):
+    """
+    Compares the data from a run with the answers from a CSV file.
+    data: the extracted data from a run
+    csv: a path of the csv
 
+    returns: a dictionary with usefull information of the comparison
+    """
     csv_file = csv
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
@@ -185,6 +195,10 @@ def compare_data(data, csv: str):
     return result
 
 def print_result(result):
+    """
+    Outputs the information from compare_data().
+    result: should be the data that is returned from compare_data()
+    """
 
     sorted_results = result['pdf_stats']
     question_stats = result['question_stats']
