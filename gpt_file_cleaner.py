@@ -1,5 +1,5 @@
 import random
-import openai
+from openai import OpenAI
 from env_manager import env
 import time
 import logging
@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 # Initialize OpenAI client
-client = openai(
+client = OpenAI(
         api_key=env('API_GPT'),
     )
 
