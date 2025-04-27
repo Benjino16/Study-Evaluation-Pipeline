@@ -6,12 +6,13 @@ from gpt_text_pipeline import process_text_with_openai
 from ollama_pipeline import process_text_with_ollama
 
 def run_request(file_path: str, model: str, process_all: bool, pdf_reader: bool, delay: int, temperature: float) -> str:
+    """Returns the raw output of the model and the used prompt."""
 
     if process_all:
 
         full_prompt = getPrompt()
         response = run_prompt(full_prompt, file_path, model, pdf_reader, temperature)
-        return response
+        return response, full_prompt
     
     else:
         results = []
@@ -29,7 +30,7 @@ def run_request(file_path: str, model: str, process_all: bool, pdf_reader: bool,
 
             if delay > 0:
                 time.sleep(delay)
-        return "\n".join(results)
+        return "\n".join(results), "splitted prompt request"
     
 
 def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temperature: float):

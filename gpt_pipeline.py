@@ -65,3 +65,16 @@ def test_gpt_pipeline():
     except Exception as e:
         print(e)
         return False
+    
+def get_gpt_model_name(model: str) -> str:
+    client = OpenAI(
+        api_key=env('API_GPT'),
+    )
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "user", "content": "This is a test call. Simply answer with the word test."}
+        ]
+    )
+
+    return response.model

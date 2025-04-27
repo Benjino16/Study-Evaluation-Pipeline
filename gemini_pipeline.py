@@ -56,3 +56,7 @@ def test_gemini_pipeline():
     except Exception as e:
         print(e)
         return False
+    
+def get_gemini_model_name(model: str) -> str:
+    model_info = genai.get_model("models/" + model)
+    return model #TODO GET REAL MODEL VERSIOn

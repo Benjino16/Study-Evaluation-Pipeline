@@ -1,6 +1,8 @@
 from env_manager import getPromptsLength
+from get_model_name import get_full_model_name
 from pipeline_manager import run_request
 from save_raw_data import save_raw_data_as_json
+from pdf_reader import get_pdf_reader_version
 
 import argparse
 import glob
@@ -12,7 +14,7 @@ import traceback
 
 # Supported Models
 VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 
-                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview', 'deepseek-r1:32b', 'deepseek-chat', 'gemini-2.0-pro-exp-02-05', 'gemini-2.5-pro-exp-03-25']
+                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview', 'deepseek-r1:32b', 'deepseek-chat', 'gemini-2.0-pro-exp-02-05', 'gemini-1.5-pro-latest', 'gemini-2.5-pro-exp-03-25']
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -72,7 +74,27 @@ def main():
 
     files_to_process = list(set(files_to_process))  # remove double files
 
-    display_overview(args.model, files_to_process, args.delay, args.process_all, args.temp)
+    #get exact model information
+    try:
+        full_model_name = get_full_model_name(args.model)
+    except Exception as e:
+        error_message = f"Error retrieving model information:\n{traceback.format_exc()}"
+        print(error_message)
+        exit()
+
+    #get pdf reader version
+    if args.pdf_reader:
+        pdf_reader_version = get_pdf_reader_version()
+    else:
+        pdf_reader_version = '-'
+
+    #get process mode
+    if args.process_all:
+        process_mode = "process full pdf in single request"
+    else:
+        process_mode = "process full pdf with prompt splitted request"
+
+    display_overview(full_model_name, files_to_process, args.delay, args.process_all, args.temp)
     eingabe = input("Drücke Enter, um fortzufahren...")
     if eingabe != "":
         print("Programm wird abgebrochen.")
@@ -82,6 +104,9 @@ def main():
     processed_count = 0
     failed_count = 0
     errors = []
+
+    
+    
 
     for file_path in files_to_process:
         processed_count += 1
@@ -96,12 +121,20 @@ def main():
             continue
 
         try:
-            last_output = run_request(file_path, args.model, args.process_all, args.pdf_reader, args.delay, args.temp)
+            last_output, prompt = run_request(file_path, args.model, args.process_all, args.pdf_reader, args.delay, args.temp)
                 
             if last_output is None:
                 raise(f"Skipping evaluation for {file_path} due to processing error.")
             
-            save_raw_data_as_json(last_output, os.path.basename(file_path), args.model)
+            save_raw_data_as_json(
+                raw_data=last_output, 
+                pdf_name=os.path.basename(file_path), 
+                model_name=full_model_name,
+                temp=args.temp,
+                pdf_reader=args.pdf_reader,
+                pdf_reader_version=pdf_reader_version,
+                process_mode=process_mode,
+                prompt=prompt)
 
         except Exception as e:
             error_message = f"Error processing {file_path}:\n{traceback.format_exc()}"
