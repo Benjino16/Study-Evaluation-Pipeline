@@ -3,7 +3,7 @@ import csv
 import sys
 import re
 from collections import defaultdict
-from evaluate_raw import evaluate_all_raw_jsons
+from load_saved_json import load_saved_jsons
 from evaluation import clean_study_number
 from evaluation import parse_json_answer
 
@@ -83,7 +83,7 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
 def run_comparrisson(csv: str, filepath: str, combine7abc: bool):
-    data = evaluate_all_raw_jsons(filepath, combine7abc)
+    data = load_saved_jsons(filepath, combine7abc)
     if not data:
         print(f"No files found for pattern: {filepath}")
         sys.exit(1)

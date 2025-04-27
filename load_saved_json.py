@@ -3,6 +3,23 @@ import json
 import glob
 from evaluation import parse_csv_string_to_json
 
+def load_saved_jsons(file_pattern, combine_7abc=False):
+    json_files = glob.glob(file_pattern)
+    
+    if not json_files:
+        return []
+
+    results = []
+    for json_file in json_files:
+        if not os.path.isfile(json_file):
+            continue
+
+        result = evaluate_from_raw_json(json_file, combine_7abc)
+        if result:
+            results.append(result)
+    
+    return results
+
 def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
     if not os.path.isfile(raw_json_path):
         return
@@ -66,19 +83,3 @@ def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
     except Exception as e:
         print(f"Fehler beim Verarbeiten der Datei {raw_json_path}: {e}")
 
-def evaluate_all_raw_jsons(file_pattern, combine_7abc=False):
-    json_files = glob.glob(file_pattern)
-    
-    if not json_files:
-        return []
-
-    results = []
-    for json_file in json_files:
-        if not os.path.isfile(json_file):
-            continue
-
-        result = evaluate_from_raw_json(json_file, combine_7abc)
-        if result:
-            results.append(result)
-    
-    return results

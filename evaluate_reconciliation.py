@@ -5,7 +5,7 @@ import os
 import argparse
 
 from compare_answers import compare_data, print_result, run_comparrisson
-from evaluate_raw import evaluate_all_raw_jsons
+from load_saved_json import load_saved_jsons
 from evaluation import create_list
 
 def read_reconciliation(string: str):
@@ -108,7 +108,7 @@ def main():
 
     args = parser.parse_args()
 
-    data = evaluate_all_raw_jsons(args.data, False)
+    data = load_saved_jsons(args.data, False)
     list = create_list(data)
 
     reconciliation = evaluate_reconciliation(args.rec)

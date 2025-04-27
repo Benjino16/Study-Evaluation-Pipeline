@@ -1,6 +1,6 @@
 import argparse
 from compare_answers import run_comparrisson
-from evaluate_raw import evaluate_all_raw_jsons
+from load_saved_json import load_saved_jsons
 import sys
 from evaluation import create_list
 from reconciliation import reconciliate, run_reconciliation
@@ -17,8 +17,8 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
     result = []
     all = []
 
-    data1 = evaluate_all_raw_jsons(run1, False)
-    data2 = evaluate_all_raw_jsons(run2, False)
+    data1 = load_saved_jsons(run1, False)
+    data2 = load_saved_jsons(run2, False)
 
     if not data1 or not data2:
         print(f"Error: Both path must contain json files.")
