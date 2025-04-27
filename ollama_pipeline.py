@@ -23,10 +23,8 @@ def process_text_with_ollama(filename: str, model: str, temp: float) -> str:
     response = requests.post(api_url, json_data)
     if response.status_code == 200:
         return response.json()['response']
-    else:
-        raise Exception(response.text)
     
-    return response
+    raise requests.exceptions.RequestException(f"Response status-code: {response.status_code}")
 
 def list_models():
     response = requests.get('https://quest-gpu-06.charite.de/api/tags', headers={'Content-Type': 'application/json'})
@@ -48,7 +46,7 @@ def test_ollama_pipeline():
             logging.info(response.json()['response'])
             return response != None
         else:
-            raise Exception(response.text)
+            raise requests.exceptions.RequestException(f"Response status-code: {response.status_code}")
     except Exception:
         logging.exception("error while using local pipeline")
         return False

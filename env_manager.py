@@ -23,7 +23,7 @@ def getQuestion(index: int):
     if 0 <= index < len(_prompts):
         return _prompts[index]
     else:
-        raise Exception("Prompt Index out of bounds!")
+        raise IndexError("Prompt Index out of bounds!")
 
 def getPrompt(index=None):
     if index is None:
@@ -31,7 +31,7 @@ def getPrompt(index=None):
     elif 0 <= index < len(_prompts):
         return f"{_system_prompt}\n{_prompts[index]}\n{_closing_prompt}"
     else:
-        raise Exception("Prompt Index out of bounds!")
+        raise IndexError("Prompt Index out of bounds!")
 
 def getPromptsLength():
     return len(_prompts)

@@ -95,15 +95,13 @@ def process_study(writer, study_rows):
 
 def main():
     if len(sys.argv) != 3:
-        logging.error("Usage: python combine_7abc.py <input_csv_file> <output_csv_file>")
-        sys.exit(1)
+        raise ValueError("Usage: python combine_7abc.py <input_csv_file> <output_csv_file>")
 
     input_csv = sys.argv[1]
     output_csv = sys.argv[2]
 
     if not os.path.isfile(input_csv):
-        logging.error(f"File {input_csv} not found.")
-        sys.exit(1)
+        raise ValueError(f"File {input_csv} not found.")
 
     # CSV verarbeiten und 7a, 7b, 7c kombinieren
     process_csv(input_csv, output_csv)

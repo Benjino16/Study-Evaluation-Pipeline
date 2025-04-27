@@ -39,7 +39,7 @@ def run_request(file_path: str, model: str, process_all: bool, pdf_reader: bool,
 def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temperature: float):
     if model.lower().startswith('gemini'):
         if pdf_reader:
-            exit("Eine Anfrage an gemini ist mit PDF-Reader nicht möglich.")
+            raise ValueError("A request to gemini is not possible with a PDF reader. Do not use --pdf_reader in the arguments.")
         else:
             last_output = process_file_with_gemini( prompt, file_path, model, temperature )
 
@@ -53,11 +53,11 @@ def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temper
         if pdf_reader:
             last_output = process_text_with_openai( file_path, model, temperature)
         else:
-            exit("Eine Anfrage an ein o1 Modell ist ohne PDF-Reader nicht möglich.")
+            raise ValueError("A request to an o1 model is not possible without a PDF reader. Use --pdf_reader in the arguments.")
     elif model.lower().startswith('deepseek'):
         if pdf_reader:
             last_output = process_text_with_ollama( file_path, model, temperature)
         else:
-            exit("Eine Anfrage an ein ollama Modell ist ohne PDF-Reader nicht möglich.")
+            raise ValueError("A request to an ollama model is not possible without a PDF reader. Use --pdf_reader in the arguments.")
               
     return last_output

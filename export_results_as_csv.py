@@ -93,7 +93,6 @@ def loop_runs(dir, csv_name):
         logging.error(f"There are no valid subfolders in {dir}")
         return
     
-    table_data = []
     for i, folder in enumerate(folder_list, start=1):
         folder_path = os.path.join(dir, folder) + "/*.json"
         create_csv(folder_path, i, csv_name)
@@ -111,7 +110,7 @@ def main():
         if args.dir:
             loop_runs(args.dir, args.name)
         else:
-            logging.error("Either a dir or a run must be provided!")
+            raise ValueError("Either a dir or a run must be provided!")
     
 
 if __name__ == '__main__':

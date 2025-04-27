@@ -1,6 +1,6 @@
 from env_manager import getPromptsLength
 from get_model_name import get_full_model_name
-from pipeline_manager import run_request
+from request_manager import run_request
 from save_raw_data import save_raw_data_as_json
 from pdf_reader import get_pdf_reader_version
 
@@ -65,8 +65,7 @@ def main():
     args = parser.parse_args()
 
     if args.model not in VALID_MODELS:
-        print(f"Error: Invalid model '{args.model}' specified. Supported models are: {', '.join(VALID_MODELS)}")
-        sys.exit(1)
+        raise ValueError(f"Error: Invalid model '{args.model}' specified. Supported models are: {', '.join(VALID_MODELS)}")
 
     files_to_process = []
     for file_pattern in args.files:
@@ -80,7 +79,7 @@ def main():
     except Exception as e:
         error_message = f"Error retrieving model information:\n{traceback.format_exc()}"
         print(error_message)
-        exit()
+        raise ValueError("Error retrieving model information.")
 
     #get pdf reader version
     if args.pdf_reader:
@@ -97,8 +96,7 @@ def main():
     display_overview(full_model_name, files_to_process, args.delay, args.process_all, args.temp)
     eingabe = input("Drücke Enter, um fortzufahren...")
     if eingabe != "":
-        print("Programm wird abgebrochen.")
-        exit()
+        raise ValueError("Exit programm, user pressed different key then enter.")
 
     total_files = len(files_to_process)
     processed_count = 0

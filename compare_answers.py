@@ -88,8 +88,7 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
 def run_comparison(csv: str, filepath: str, combine7abc: bool):
     data = load_saved_jsons(filepath, combine7abc)
     if not data:
-        logging.error(f"No files found for pattern: {filepath}")
-        sys.exit(1)
+        raise ValueError(f"No files found for pattern: {filepath}")
     return compare_data(data, csv)
 
 def compare_data(data, csv: str):

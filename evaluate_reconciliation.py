@@ -52,6 +52,7 @@ def evaluate_reconciliation(file_pattern: str):
         
         except Exception:
             logging.exception(f"Error while prcessing file: {file}")
+            continue
     return result
 
 def search_in_rec(reconciliation, study_number, number) -> bool:

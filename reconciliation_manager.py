@@ -24,8 +24,7 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
     data2 = load_saved_jsons(run2, False)
 
     if not data1 or not data2:
-        logging.error(f"Both path must contain json files.")
-        sys.exit(1)
+        raise ValueError(f"Both path must contain json files.")
 
     list1 = create_list(data1)
     list2 = create_list(data2)
@@ -118,8 +117,7 @@ def main():
     print(mismatches)
     eingabe = input("Press Enter to start the reconciliation:")
     if eingabe != "":
-        print("Program is aborted.")
-        exit()
+        raise ValueError(f"Program is aborted!")
     run_reconciliation(mismatches, args.model1, args.model2, args.delay)
 
 if __name__ == '__main__':
