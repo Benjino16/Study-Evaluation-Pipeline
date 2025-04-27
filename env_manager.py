@@ -8,45 +8,36 @@ pdf_path = "../Data/PDFs/"
 dotenv_path = find_dotenv('.env')
 load_dotenv(dotenv_path)
 
+# load prompts once at the start
+with open(prompt_path, "r", encoding="utf-8") as file:
+    _prompt_data = json.load(file)
+
+_system_prompt = _prompt_data["system_prompt"]
+_closing_prompt = _prompt_data["closing_prompt"]
+_prompts = _prompt_data["prompts"]
+
 def env(key):
     return os.getenv(key)
 
 def getQuestion(index: int):
-    with open(prompt_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    prompts = data["prompts"]
-
-    if 0 <= index < len(prompts):
-        return f"{prompts[index]}"
+    if 0 <= index < len(_prompts):
+        return _prompts[index]
     else:
         raise Exception("Prompt Index out of bounds!")
 
 def getPrompt(index=None):
-    with open(prompt_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    system_prompt = data["system_prompt"]
-    closing_prompt = data["closing_prompt"]
-    prompts = data["prompts"]
-
     if index is None:
-        return f"{system_prompt}\n" + "\n".join(prompts) + f"\n{closing_prompt}"
-    elif 0 <= index < len(prompts):
-        return f"{system_prompt}\n{prompts[index]}\n{closing_prompt}"
+        return f"{_system_prompt}\n" + "\n".join(_prompts) + f"\n{_closing_prompt}"
+    elif 0 <= index < len(_prompts):
+        return f"{_system_prompt}\n{_prompts[index]}\n{_closing_prompt}"
     else:
         raise Exception("Prompt Index out of bounds!")
 
-
 def getPromptsLength():
-    with open("prompts.json", "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    prompts = data["prompts"]
-    return len(prompts)
+    return len(_prompts)
 
 def getPDFPath(number: str):
     return f"{pdf_path}{number.zfill(4)}.pdf"
 
 if __name__ == '__main__':
-    print(getPrompt())
+    print(getPrompt(13))
