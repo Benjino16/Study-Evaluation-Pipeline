@@ -1,3 +1,4 @@
+import argparse
 import csv
 import sys
 import os
@@ -22,6 +23,7 @@ def create_csv(file_pattern, run_id, output_file=None):
             study_number = clean_study_number(entry.get('PDF_Name', 'N/A'))
 
             correct_answer = correct_answers[(study_number, question_number)]
+
             row = {
                 #general information of the run
                 'run': run_id,
@@ -75,17 +77,39 @@ def create_csv(file_pattern, run_id, output_file=None):
             writer.writeheader()
         for row in rows:
             writer.writerow(row)
+    print("Created csv for " + file_pattern)
+
+def loop_runs(dir, csv_name):
+    if not os.path.isdir(dir):
+            print(f"Das Verzeichnis {dir} existiert nicht.")
+            return
+    
+    folder_list = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f)) and not f.startswith(".")]
+
+    if not folder_list:
+        print("Es wurden keine gültigen Unterordner gefunden.")
+        return
+    
+    table_data = []
+    for i, folder in enumerate(folder_list, start=1):
+        folder_path = os.path.join(dir, folder) + "/*.json"
+        create_csv(folder_path, i, csv_name)
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: python json_to_csv.py <json_file_pattern> <run_number> <output_csv_file>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description='Creates a csv from either a specific run or a run directory.')
+    parser.add_argument('--run', required=False, help='A specific run from which the csv should be created')
+    parser.add_argument('--dir', required=False, help='A run folder from where the csv is created with all runs.')
+    parser.add_argument('--name', required=True, help='A name of the csv.')
+    args = parser.parse_args()
 
-    file_pattern = sys.argv[1]
-    run_number = int(sys.argv[2])
-    output_file = sys.argv[3]
-
-    create_csv(file_pattern, run_number, output_file)
+    if args.run:
+        create_csv(args.run, 1, args.name)
+    else:
+        if args.dir:
+            loop_runs(args.dir, args.name)
+        else:
+            print("Either a dir or a run must be provided!")
+    
 
 if __name__ == '__main__':
     main()

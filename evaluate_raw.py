@@ -47,6 +47,7 @@ def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
         answers_json = parse_csv_string_to_json(raw_answer_string, combine_7abc=combine_7abc)
 
         data = {
+            "Version": version,
             "PDF_Name": pdf_name,
             "Model_Name": model_name,
             "Prompts": answers_json,
