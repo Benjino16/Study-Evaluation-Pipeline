@@ -59,4 +59,4 @@ def test_gemini_pipeline():
     
 def get_gemini_model_name(model: str) -> str:
     model_info = genai.get_model("models/" + model)
-    return model_info
+    return model #TODO GET REAL MODEL VERSIOn
