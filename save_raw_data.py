@@ -4,6 +4,7 @@ import csv
 import os
 from datetime import datetime, timezone
 import logging
+import env_manager
 
 logging.basicConfig(level=logging.INFO)
 
@@ -15,7 +16,7 @@ def save_raw_data_as_json(raw_data, pdf_name, model_name, temp: float, pdf_reade
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     
     json_name = f"raw-{pdf_name}-{timestamp}.json"
-    output_filename = "../Data/Results/" + json_name
+    output_filename = env_manager.RESULT_FOLDER + json_name
     
     now_utc = datetime.now(timezone.utc)
     formatted_time = now_utc.strftime('%Y-%m-%dT%H:%M:%SZ')

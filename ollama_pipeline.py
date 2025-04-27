@@ -1,6 +1,6 @@
 import requests
 import json
-from env_manager import getPrompt
+from prompt_manager import getPrompt
 from pdf_reader import get_text_from_pdf
 import logging
 

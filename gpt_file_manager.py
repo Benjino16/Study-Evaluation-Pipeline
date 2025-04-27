@@ -1,9 +1,10 @@
 import json
 import os
 from openai import OpenAI
+import env_manager
 
 
-saved_files = "saved_files.json"
+uploaded_files = env_manager.GPT_UPLOADED_FILES
 
 def get_file(file_path: str, client: object):
 
@@ -21,23 +22,23 @@ def get_file(file_path: str, client: object):
     return file_id
 
 def add_file_to_json(file_name: str, file_id: str):
-    if not os.path.exists(saved_files):
-        with open(saved_files, "w") as f:
+    if not os.path.exists(uploaded_files):
+        with open(uploaded_files, "w") as f:
             json.dump([], f)
 
-    with open(saved_files, "r") as f:
+    with open(uploaded_files, "r") as f:
         data = json.load(f)
     
     data.append({"file_name": file_name, "file_id": file_id})
 
-    with open(saved_files, "w") as f:
+    with open(uploaded_files, "w") as f:
         json.dump(data, f, indent=4)
 
 def get_file_from_json(file_name: str):
-    if not os.path.exists(saved_files):
+    if not os.path.exists(uploaded_files):
         return None
 
-    with open(saved_files, "r") as f:
+    with open(uploaded_files, "r") as f:
         data = json.load(f)
     
     for entry in data:

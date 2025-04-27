@@ -1,43 +1,42 @@
 import os
-import json
+import yaml
 from dotenv import load_dotenv, find_dotenv
 
-prompt_path = "prompts.json"
-pdf_path = "../Data/PDFs/"
-
 dotenv_path = find_dotenv('.env')
+config_path = "config.yaml"
 load_dotenv(dotenv_path)
 
-# load prompts once at the start
-with open(prompt_path, "r", encoding="utf-8") as file:
-    _prompt_data = json.load(file)
+def config(key):
+    with open(config_path, 'r') as f:
+        settings = yaml.safe_load(f)
+    
+    parts = key.split(".")
+    value = settings
+    for part in parts:
+        value = value.get(part)
+        if value is None:
+            raise KeyError(f"Key '{key}' not found in {config_path}")
+    
+    return value
 
-_system_prompt = _prompt_data["system_prompt"]
-_closing_prompt = _prompt_data["closing_prompt"]
-_prompts = _prompt_data["prompts"]
+
+PROMPT_PATH = config("prompt_file_path")
+GPT_UPLOADED_FILES = config("uploaded_gpt_files")
+
+PDF_FOLDER = config("pdf_folder")
+RESULT_FOLDER = config("result_folder")
+CSV_PATH = config("csv_folder")
+
+
 
 def env(key):
     return os.getenv(key)
 
-def getQuestion(index: int):
-    if 0 <= index < len(_prompts):
-        return _prompts[index]
-    else:
-        raise IndexError("Prompt Index out of bounds!")
-
-def getPrompt(index=None):
-    if index is None:
-        return f"{_system_prompt}\n" + "\n".join(_prompts) + f"\n{_closing_prompt}"
-    elif 0 <= index < len(_prompts):
-        return f"{_system_prompt}\n{_prompts[index]}\n{_closing_prompt}"
-    else:
-        raise IndexError("Prompt Index out of bounds!")
-
-def getPromptsLength():
-    return len(_prompts)
-
 def getPDFPath(number: str):
-    return f"{pdf_path}{number.zfill(4)}.pdf"
+    return f"{PDF_FOLDER}{number.zfill(4)}.pdf"
 
-if __name__ == '__main__':
-    print(getPrompt(13))
+def load_valid_models():
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+        valid_models = config['valid_models']
+        return valid_models

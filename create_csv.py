@@ -2,6 +2,7 @@ import argparse
 import csv
 import sys
 import os
+import env_manager
 from load_saved_json import load_saved_jsons
 from compare_answers import load_correct_answers
 from evaluation import parse_json_answer, clean_study_number
@@ -55,7 +56,7 @@ def create_csv(file_pattern, run_id, output_file=None):
     if output_file is None:
         output_file = 'output.csv'
 
-    output_file = "../Data/CSVs/" + output_file
+    output_file = env_manager.CSV_FOLDER + output_file
 
     file_exists = os.path.exists(output_file)
 

@@ -1,5 +1,5 @@
 import time
-from env_manager import getPrompt, getPromptsLength
+from prompt_manager import getPrompt, getPromptsLength
 from gemini_pipeline import process_file_with_gemini
 from gpt_pipeline import process_pdf_with_openai
 from gpt_text_pipeline import process_text_with_openai

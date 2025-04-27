@@ -1,5 +1,6 @@
 from openai import OpenAI
-from env_manager import env, getPrompt
+from env_manager import env
+from prompt_manager import getPrompt
 from pdf_reader import get_text_from_pdf
 
 def process_text_with_openai(filename: str, model: str, temp: float) -> str:

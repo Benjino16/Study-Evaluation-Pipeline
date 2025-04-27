@@ -1,4 +1,5 @@
-from env_manager import getPromptsLength
+from env_manager import load_valid_models
+from prompt_manager import getPromptsLength
 from get_model_name import get_full_model_name
 from request_manager import run_request
 from save_raw_data import save_raw_data_as_json
@@ -13,8 +14,7 @@ import datetime
 import traceback
 
 # Supported Models
-VALID_MODELS = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 
-                'gemini-1.0-pro', 'gemini-1.5-flash', 'o1-preview', 'deepseek-r1:32b', 'deepseek-chat', 'gemini-2.0-pro-exp-02-05', 'gemini-1.5-pro-latest', 'gemini-2.5-pro-exp-03-25']
+VALID_MODELS = load_valid_models()
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
