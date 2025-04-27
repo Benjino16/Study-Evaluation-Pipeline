@@ -1,18 +1,20 @@
 import time
-from pipeline_manager import run_prompt
+from request_manager import run_prompt
 from env_manager import getQuestion, getPDFPath
 from save_raw_data import save_raw_data_as_json
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 def run_reconciliation(mismatches, model1: str, model2: str, delay: int):
     for study in mismatches:
         study_number = study['study_number']
         data = study['mismatches']
-        print(f"Reconciliation for Study: {study_number}")
+        logging.info(f"Reconciliation for Study: {study_number}")
         result = reconciliate(data, study_number, model1, model2)
         #!!save_raw_data_as_json(result, study_number, model1)
         #NOT SAVED
-        print(f"Result: {result}")
+        logging.info(f"Result: {result}")
         if delay > 0:
             time.sleep(delay)
 

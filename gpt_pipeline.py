@@ -6,6 +6,9 @@ from openai.types.beta.threads.message_create_params import (
 )
 import os
 from gpt_file_manager import get_file
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 assistantID = "asst_IU1BLwiptkX3J4fj5f2wRfaI"
 
@@ -41,7 +44,7 @@ def process_pdf_with_openai(prompt: str, filename: str, model: str, temperature:
         messages = [message for message in messages_cursor]
         res_txt = messages[0].content[0].text.value
 
-        print("Res Text: " + res_txt)
+        logging.info("Res Text: " + res_txt)
         
         if not res_txt.strip():
             raise Exception(f"Completed run but received empty or malformed response for {filename}.\n status: {run.status} \n error: {run.last_error}")
@@ -62,8 +65,8 @@ def test_gpt_pipeline():
             ]
         )
         return response.choices[0].message.content != None
-    except Exception as e:
-        print(e)
+    except Exception:
+        logging.exception("Exception while trying to test gpt api.")
         return False
     
 def get_gpt_model_name(model: str) -> str:

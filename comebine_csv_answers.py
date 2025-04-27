@@ -1,6 +1,9 @@
 import csv
 import sys
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def combine_7abc(study_rows):
     """
@@ -92,19 +95,19 @@ def process_study(writer, study_rows):
 
 def main():
     if len(sys.argv) != 3:
-        print("Usage: python combine_7abc.py <input_csv_file> <output_csv_file>")
+        logging.error("Usage: python combine_7abc.py <input_csv_file> <output_csv_file>")
         sys.exit(1)
 
     input_csv = sys.argv[1]
     output_csv = sys.argv[2]
 
     if not os.path.isfile(input_csv):
-        print(f"Error: File {input_csv} not found.")
+        logging.error(f"File {input_csv} not found.")
         sys.exit(1)
 
     # CSV verarbeiten und 7a, 7b, 7c kombinieren
     process_csv(input_csv, output_csv)
-    print(f"CSV-Prozess abgeschlossen. Die Datei wurde erstellt: {output_csv}")
+    logging.info(f"CSV-Prozess completed. File was created as: {output_csv}")
 
 if __name__ == '__main__':
     main()

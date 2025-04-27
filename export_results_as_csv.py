@@ -5,6 +5,9 @@ import os
 from load_saved_json import load_saved_jsons
 from compare_answers import load_correct_answers
 from evaluation import parse_json_answer, clean_study_number
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def create_csv(file_pattern, run_id, output_file=None):
 
@@ -14,7 +17,7 @@ def create_csv(file_pattern, run_id, output_file=None):
     rows = []
     for entry in data:
         if 'Prompts' not in entry:
-            print(f"Error: 'Prompts' key missing in one of the entries: {entry}")
+            logging.warning(f"'Prompts' key missing in one of the entries: {entry}")
             continue
 
         for response in entry['Prompts']:
@@ -77,17 +80,17 @@ def create_csv(file_pattern, run_id, output_file=None):
             writer.writeheader()
         for row in rows:
             writer.writerow(row)
-    print("Created csv for " + file_pattern)
+    logging.info("Created csv for " + file_pattern)
 
 def loop_runs(dir, csv_name):
     if not os.path.isdir(dir):
-            print(f"Das Verzeichnis {dir} existiert nicht.")
-            return
+        logging.error(f"The directory {dir} does not exist.")
+        return
     
     folder_list = [f for f in os.listdir(dir) if os.path.isdir(os.path.join(dir, f)) and not f.startswith(".")]
 
     if not folder_list:
-        print("Es wurden keine gültigen Unterordner gefunden.")
+        logging.error(f"There are no valid subfolders in {dir}")
         return
     
     table_data = []
@@ -108,7 +111,7 @@ def main():
         if args.dir:
             loop_runs(args.dir, args.name)
         else:
-            print("Either a dir or a run must be provided!")
+            logging.error("Either a dir or a run must be provided!")
     
 
 if __name__ == '__main__':

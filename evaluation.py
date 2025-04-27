@@ -1,6 +1,9 @@
 import io
 import csv
 import re
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def parse_json_answer(answer):
     """Parse the JSON answer into '1' for yes, '0' for no, or None for invalid answers."""
@@ -74,7 +77,7 @@ def parse_csv_string_to_json(csv_string, combine_7abc=False):
             else:
                 if len(row) == 0 or all(not cell.strip() for cell in row):
                     continue
-                print(f"Warnung: Zeile hat ein falsches Format und wird ignoriert: {row}")
+                logging.warning(f"Line has a wrong format and will be ignored: {row}")
 
         if combine_7abc:
             quotes = [prompts[q]['quote'].lower() for q in combine_questions]
@@ -96,10 +99,10 @@ def parse_csv_string_to_json(csv_string, combine_7abc=False):
             del prompts['7c']
 
         if not any(prompts.values()):
-            raise ValueError("Keine gültigen Zeilen im CSV-String gefunden.")
+            raise ValueError("No valid lines found in the CSV string.")
         
     except (ValueError, Exception) as e:
-        print(f"Fehler beim Verarbeiten des CSV-Strings: {e}")
+        logging.error(f"Error processing the CSV string: {e}")
         prompts = {str(i + 1): {'number': str(i + 1), 'answer': 'error', 'quote': 'error'} for i in range(3)}
         
     return list(prompts.values())

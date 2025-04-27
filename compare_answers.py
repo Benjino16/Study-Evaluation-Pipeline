@@ -6,6 +6,9 @@ from collections import defaultdict
 from load_saved_json import load_saved_jsons
 from evaluation import clean_study_number
 from evaluation import parse_json_answer
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 papers = [
     "0005", "0013", "0019", "0031", "0054", "0094", "0098", "0100", "0110", "0124", "0125", "0129", "0172",
@@ -85,7 +88,7 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
 def run_comparrisson(csv: str, filepath: str, combine7abc: bool):
     data = load_saved_jsons(filepath, combine7abc)
     if not data:
-        print(f"No files found for pattern: {filepath}")
+        logging.error(f"No files found for pattern: {filepath}")
         sys.exit(1)
     return compare_data(data, csv)
 

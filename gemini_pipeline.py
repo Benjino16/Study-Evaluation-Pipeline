@@ -1,7 +1,9 @@
 import os
 from env_manager import env
 import google.generativeai as genai
+import logging
 
+logging.basicConfig(level=logging.INFO)
 genai.configure(api_key=env('API_GEMINI'))
 
 # Global list to check for already uploaded pdfs
@@ -20,13 +22,13 @@ def process_file_with_gemini(prompt: str, filename: str, model: str, temperature
     # Überprüfen, ob das PDF bereits hochgeladen wurde
     for uploaded_file in uploaded_files:
         if uploaded_file["name"] == file_key:
-            print(f"Datei '{file_key}' wurde bereits hochgeladen, verwende gespeichertes File.")
+            logging.info(f"File '{file_key}' was already uploaded. Using the saved version instead.")
             file = uploaded_file["file"]
             break
     else:
         # Datei hochladen, falls noch nicht in der Liste vorhanden
         sample_file = genai.upload_file(path=filename, display_name="Gemini PDF FILE")
-        print(f"Hochgeladene Datei '{sample_file.display_name}' als: {sample_file.uri}")
+        logging.info(f"Uploaded file '{sample_file.display_name}' as: {sample_file.uri}")
 
         # Datei zur Liste hinzufügen
         uploaded_files.append({
@@ -54,7 +56,7 @@ def test_gemini_pipeline():
         )
         return response.text != None
     except Exception as e:
-        print(e)
+        logging.exception("Exception while trying to test gemini api.")
         return False
     
 def get_gemini_model_name(model: str) -> str:

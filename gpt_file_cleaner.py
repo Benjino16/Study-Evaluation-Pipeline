@@ -2,6 +2,10 @@ import random
 import openai
 from env_manager import env
 import time
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 
 # Initialize OpenAI client
 client = openai(
@@ -21,18 +25,18 @@ def delete_all_vector_stores():
         
         # Loop through and delete each vector store
         for vector_store_id in vector_store_ids:
-            print(f"Deleting vector store: {vector_store_id}")
+            logging.info(f"Deleting vector store: {vector_store_id}")
             try:
                 client.beta.vector_stores.delete(vector_store_id=vector_store_id)
-                print(f"Vector store {vector_store_id} deleted successfully!")
-            except openai.error.InvalidRequestError as e:
-                print(f"Error deleting {vector_store_id}: {str(e)}")
-            except Exception as e:
-                print(f"Unexpected error deleting {vector_store_id}: {str(e)}")
+                logging.info(f"Vector store {vector_store_id} deleted successfully!")
+            except openai.error.InvalidRequestError:
+                logging.exception(f"Error deleting {vector_store_id}")
+            except Exception:
+                logging.exception(f"Unexpected error deleting {vector_store_id}")
 
             time.sleep(1)  # Avoid hitting rate limits or overwhelming the API
-    except Exception as e:
-        print(f"Error while listing vector stores: {str(e)}")
+    except Exception:
+        logging.exception(f"Error while listing vector stores")
 
 
 # Main deletion process with warning and confirmation

@@ -4,6 +4,9 @@ from load_saved_json import load_saved_jsons
 import sys
 from evaluation import create_list
 from reconciliation import reconciliate, run_reconciliation
+import logging
+
+logging.basicConfig(level=logging.INFO)
             
 def find_entry_by_study(result_list, study_number, number):
     for study in result_list:
@@ -21,7 +24,7 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
     data2 = load_saved_jsons(run2, False)
 
     if not data1 or not data2:
-        print(f"Error: Both path must contain json files.")
+        logging.error(f"Both path must contain json files.")
         sys.exit(1)
 
     list1 = create_list(data1)
@@ -113,9 +116,9 @@ def main():
     mismatches = evaluate_difference(args.data1, args.data2, args.model1, args.model2)
     reconciliation_overview(mismatches, args.data1, args.data2, args.model1, args.model2)
     print(mismatches)
-    eingabe = input("Drücke Enter, um die Reconciliation zu starten:")
+    eingabe = input("Press Enter to start the reconciliation:")
     if eingabe != "":
-        print("Programm wird abgebrochen.")
+        print("Program is aborted.")
         exit()
     run_reconciliation(mismatches, args.model1, args.model2, args.delay)
 

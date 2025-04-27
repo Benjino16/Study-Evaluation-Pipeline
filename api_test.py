@@ -2,28 +2,30 @@ from gemini_pipeline import test_gemini_pipeline
 from gpt_pipeline import test_gpt_pipeline
 from ollama_pipeline import test_ollama_pipeline
 from gpt_text_pipeline import test_deepseek_pipeline
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 def api_test():
 
-    print("---- API Test ----")
+    logging.info("---- API Test ----")
 
-    print("testing gpt api...")
+    logging.info("testing gpt api...")
     gpt_pipeline = test_gpt_pipeline()
-    print("passed ✅" if gpt_pipeline else "error")
+    log_test_result(gpt_pipeline)
 
-    print("testing gemini api...")
+    logging.info("testing gemini api...")
     gemini_pipeline = test_gemini_pipeline() 
-    print("passed ✅" if gemini_pipeline else "error")
+    log_test_result(gemini_pipeline)
 
-    print("testing deepseek api...")
+    logging.info("testing deepseek api...")
     deepseek_pipeline = test_deepseek_pipeline() 
-    print("passed ✅" if deepseek_pipeline else "error")
+    log_test_result(deepseek_pipeline)
 
-    print("testing ollama api...")
+    logging.info("testing ollama api...")
     ollama_pipeline = test_ollama_pipeline() 
-    print("passed ✅" if ollama_pipeline else "error")
-
+    log_test_result(ollama_pipeline)
+    
     return {
         "gpt": gpt_pipeline,
         "gemini": gemini_pipeline,
@@ -32,7 +34,8 @@ def api_test():
         "local": False
     }
 
-
+def log_test_result(passed: bool):
+    logging.info("passed ✅" if passed else "error ❌")
 
 if __name__ == '__main__':
     api_test()

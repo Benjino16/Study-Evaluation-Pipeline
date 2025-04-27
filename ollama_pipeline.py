@@ -2,6 +2,9 @@ import requests
 import json
 from env_manager import getPrompt
 from pdf_reader import get_text_from_pdf
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 api_url = 'https://quest-gpu-06.charite.de/api/generate'
 
@@ -42,12 +45,12 @@ def test_ollama_pipeline():
         json_data = json.dumps(data)
         response = requests.post(api_url, json_data)
         if response.status_code == 200:
-            print(response.json()['response'])
+            logging.info(response.json()['response'])
             return response != None
         else:
             raise Exception(response.text)
-    except Exception as e:
-        print(e)
+    except Exception:
+        logging.exception("error while using local pipeline")
         return False
 
 if __name__ == "__main__":

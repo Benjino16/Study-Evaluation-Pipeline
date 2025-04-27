@@ -3,10 +3,14 @@ import json
 import re
 import os
 import argparse
+import logging
 
 from compare_answers import compare_data, print_result, run_comparrisson
 from load_saved_json import load_saved_jsons
 from evaluation import create_list
+
+
+logging.basicConfig(level=logging.INFO)
 
 def read_reconciliation(string: str):
     match = re.search(r'```json\s*(.*?)\s*```', string, re.DOTALL)
@@ -46,8 +50,8 @@ def evaluate_reconciliation(file_pattern: str):
                     'mistakes': number_list
                 })
         
-        except Exception as e:
-            print(f"Fehler beim Verarbeiten der Datei {file}: {e}")
+        except Exception:
+            logging.exception(f"Error while prcessing file: {file}")
     return result
 
 def search_in_rec(reconciliation, study_number, number) -> bool:
@@ -72,7 +76,7 @@ def apply_reconciliation_to_data(data, reconciliation):
 
             correct = search_in_rec(reconciliation, study_number, number)
             if correct and answer != None:
-                print(f"Corrected: {study_number} | {number}")
+                logging.info(f"Corrected: {study_number} | {number}")
                 answer = 1 - int(answer)
 
             answers.append({
@@ -112,19 +116,19 @@ def main():
     list = create_list(data)
 
     reconciliation = evaluate_reconciliation(args.rec)
-    print(reconciliation)
+    logging.info(reconciliation)
     if args.rec2:
         reconciliation2 = evaluate_reconciliation(args.rec2)
-        print(reconciliation2)
+        logging.info(reconciliation2)
         reconciliation = combine_reconciliation(reconciliation, reconciliation2)
 
 
 
     corrected_data = apply_reconciliation_to_data(list, reconciliation)
-    print(corrected_data)
+    logging.info(corrected_data)
 
     results = compare_data(corrected_data, "correct_answers.csv")
-    print_result(results)
+    logging.info(results)
 
 if __name__ == '__main__':
     main()

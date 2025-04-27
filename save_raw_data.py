@@ -3,6 +3,9 @@ import io
 import csv
 import os
 from datetime import datetime, timezone
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 version_number = 2.0
 
@@ -13,7 +16,7 @@ def save_raw_data_as_json(raw_data, pdf_name, model_name, temp: float, pdf_reade
     
     json_name = f"raw-{pdf_name}-{timestamp}.json"
     output_filename = "../Data/Results/" + json_name
-
+    
     now_utc = datetime.now(timezone.utc)
     formatted_time = now_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 
@@ -36,4 +39,4 @@ def save_raw_data_as_json(raw_data, pdf_name, model_name, temp: float, pdf_reade
         json.dump(raw_data, f, indent=4)
 
     
-    print(f"Saved raw data in: {output_filename}")
+    logging.info(f"Saved raw data in: {output_filename}")

@@ -4,6 +4,9 @@ from gemini_pipeline import process_file_with_gemini
 from gpt_pipeline import process_pdf_with_openai
 from gpt_text_pipeline import process_text_with_openai
 from ollama_pipeline import process_text_with_ollama
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def run_request(file_path: str, model: str, process_all: bool, pdf_reader: bool, delay: int, temperature: float) -> str:
     """Returns the raw output of the model and the used prompt."""
@@ -24,8 +27,8 @@ def run_request(file_path: str, model: str, process_all: bool, pdf_reader: bool,
             try:
                 response = run_prompt(prompt, file_path, model, pdf_reader, temperature)
                 results.append(response)
-            except Exception as e:
-                print(f"Ein Fehler ist bei einer Single Prompt Anfrage aufgetreten! {e}")
+            except Exception:
+                logging.exception(f"An error has occurred with a single prompt request!")
                 results.append("ERROR: SINGLE PROMPT REQUEST")
 
             if delay > 0:

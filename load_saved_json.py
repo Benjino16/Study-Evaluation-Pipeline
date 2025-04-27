@@ -2,6 +2,9 @@ import os
 import json
 import glob
 from evaluation import parse_csv_string_to_json
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def load_saved_jsons(file_pattern, combine_7abc=False):
     json_files = glob.glob(file_pattern)
@@ -14,13 +17,13 @@ def load_saved_jsons(file_pattern, combine_7abc=False):
         if not os.path.isfile(json_file):
             continue
 
-        result = evaluate_from_raw_json(json_file, combine_7abc)
+        result = load_json(json_file, combine_7abc)
         if result:
             results.append(result)
     
     return results
 
-def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
+def load_json(raw_json_path, combine_7abc=False):
     if not os.path.isfile(raw_json_path):
         return
     
@@ -80,6 +83,6 @@ def evaluate_from_raw_json(raw_json_path, combine_7abc=False):
         return data
 
     
-    except Exception as e:
-        print(f"Fehler beim Verarbeiten der Datei {raw_json_path}: {e}")
+    except Exception:
+        logging.exception(f"Error while processing file {raw_json_path}")
 
