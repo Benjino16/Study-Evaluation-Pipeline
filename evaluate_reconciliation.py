@@ -5,7 +5,7 @@ import os
 import argparse
 import logging
 
-from compare_answers import compare_data, print_result, run_comparrisson
+from compare_answers import compare_data, print_result, run_comparison
 from load_saved_json import load_saved_jsons
 from evaluation import create_list
 

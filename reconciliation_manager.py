@@ -1,5 +1,5 @@
 import argparse
-from compare_answers import run_comparrisson
+from compare_answers import run_comparison
 from load_saved_json import load_saved_jsons
 import sys
 from evaluation import create_list
@@ -77,8 +77,8 @@ def evaluate_difference(run1: str, run2: str, model1: str, model2: str):
 def reconciliation_overview(mismatches, run1: str, run2: str, model1: str, model2: str):
     count_mismatches = len(list_mismatches(mismatches))
     
-    result1 = run_comparrisson("correct_answers.CSV", run1, False)
-    result2 = run_comparrisson("correct_answers.CSV", run2, False)
+    result1 = run_comparison("correct_answers.CSV", run1, False)
+    result2 = run_comparison("correct_answers.CSV", run2, False)
 
     global_matches1 = result1['global_matches']
     global_total_comparisons1 = result1['global_total_comparisons']

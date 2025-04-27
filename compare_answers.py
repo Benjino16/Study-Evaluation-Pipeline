@@ -85,7 +85,7 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     # Return the count of skipped invalid and missing CSV entries for tracking
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
-def run_comparrisson(csv: str, filepath: str, combine7abc: bool):
+def run_comparison(csv: str, filepath: str, combine7abc: bool):
     data = load_saved_jsons(filepath, combine7abc)
     if not data:
         logging.error(f"No files found for pattern: {filepath}")
@@ -275,7 +275,7 @@ def main():
     parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
 
     args = parser.parse_args()
-    result = run_comparrisson(args.csv, args.data, args.combine7abc)
+    result = run_comparison(args.csv, args.data, args.combine7abc)
     print_result(result)
 
 

@@ -3,7 +3,7 @@ import platform
 import argparse
 import json
 from tabulate import tabulate
-from compare_answers import run_comparrisson, print_result
+from compare_answers import run_comparison, print_result
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -93,7 +93,7 @@ def main():
     while True:
         selected_run = show_selection_menu(base_directory)
         clear_console()
-        result = run_comparrisson(csv, selected_run, combine7abc)
+        result = run_comparison(csv, selected_run, combine7abc)
         print_result(result)
         input("\nPress the Enter key to return to the overview...")
         
