@@ -35,6 +35,22 @@ def load_correct_answers(csv_file):
             correct_answers[(study_number, prompt_number)] = answer
     return correct_answers
 
+def load_human_answers(csv_file):
+    """Load human answers from the CSV file into a dictionary."""
+    correct_answers = {}
+    with open(csv_file, newline='') as f:
+        reader = csv.DictReader(f, delimiter=';')
+        for row in reader:
+            study_number = clean_study_number(row['study_number'])
+            prompt_number = row['prompt_number']
+            answer1 = row['run1']
+            answer2 = row['run2']
+
+            # Ignore rows with NA answers #TODO not ignore but give ignore option else where
+            #if answer != "NA":
+            correct_answers[(study_number, prompt_number)] = answer1, answer2
+    return correct_answers
+
 def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper):
     """Compare answers from the JSON file with the correct answers from the CSV and record bias."""
 
@@ -141,7 +157,7 @@ def compare_data(data, csv: str):
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
 
-        required_files.remove(entry['PDF_Name'])
+        #required_files.remove(entry['PDF_Name'])
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format

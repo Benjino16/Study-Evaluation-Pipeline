@@ -4,18 +4,19 @@ import sys
 import os
 import env_manager
 from load_saved_json import load_saved_jsons
-from compare_answers import load_correct_answers
+from compare_answers import load_correct_answers, load_human_answers
 from evaluation import parse_json_answer, clean_study_number
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
-def create_csv(file_pattern, run_id, output_file=None):
+def create_csv(file_pattern, run_id, correct_answers, output_file=None, validation: bool=False):
     """Creates a CSV file from a run, which contains all useful information of the run in long format.
     If there is already a file with the name, the content is appended."""
 
     data = load_saved_jsons(file_pattern, False)
-    correct_answers = load_correct_answers("correct_answers.CSV")
+    correct_answers = load_correct_answers(correct_answers)
+    human_answers = load_human_answers("human_reviewer_answers.csv")
 
     rows = []
     for entry in data:
@@ -28,7 +29,16 @@ def create_csv(file_pattern, run_id, output_file=None):
             question_number = response.get('number', 'N/A')
             study_number = clean_study_number(entry.get('PDF_Name', 'N/A'))
 
-            correct_answer = correct_answers[(study_number, question_number)]
+            try:
+                correct_answer = correct_answers[(study_number, question_number)]
+            except:
+                correct_answer = "not in dataset"
+
+            try:
+                human1, human2 = human_answers[(study_number, question_number)]
+            except:
+                human1, human2 = "not in dataset", "not in dataset"
+            
 
             row = {
                 #general information of the run
@@ -38,6 +48,7 @@ def create_csv(file_pattern, run_id, output_file=None):
                 "pdf_reader": entry.get('PDF_Reader', 'N/A'),
                 "pdf_reader_version": entry.get('PDF_Reader_Version', 'N/A'),
                 "process_mode": entry.get('Process_Mode', 'N/A'),
+                "validation": validation,
 
                 #information related to specific study
                 'pdf_name': study_number,
@@ -51,7 +62,9 @@ def create_csv(file_pattern, run_id, output_file=None):
                 
                 
                 'answer_parsed': parse_json_answer(response.get('answer', 'N/A')),
-                'correct_answer': correct_answer
+                'correct_answer': correct_answer,
+                'human1': human1,
+                'human2': human2
             }
             rows.append(row)
 
@@ -70,6 +83,7 @@ def create_csv(file_pattern, run_id, output_file=None):
             'pdf_reader',
             'pdf_reader_version',
             'process_mode',
+            'validation',
             'pdf_name',
             'date',
             'raw_answer',
@@ -77,7 +91,9 @@ def create_csv(file_pattern, run_id, output_file=None):
             'answer',
             'explanation',
             'answer_parsed',
-            'correct_answer'
+            'correct_answer',
+            'human1',
+            'human2'
         ])
         if not file_exists:
             writer.writeheader()
@@ -85,7 +101,7 @@ def create_csv(file_pattern, run_id, output_file=None):
             writer.writerow(row)
     logging.info("Created csv for " + file_pattern)
 
-def loop_runs(dir, csv_name):
+def loop_runs(dir, csv_name, correct_answers):
     """loops through several runs and creates a CSV from them."""
     
     if not os.path.isdir(dir):
@@ -100,20 +116,28 @@ def loop_runs(dir, csv_name):
     
     for i, folder in enumerate(folder_list, start=1):
         folder_path = os.path.join(dir, folder) + "/*.json"
-        create_csv(folder_path, i, csv_name)
+        create_csv(folder_path, i, correct_answers, csv_name)
+
 
 def main():
     parser = argparse.ArgumentParser(description='Creates a csv from either a specific run or a run directory.')
     parser.add_argument('--run', required=False, help='A specific run from which the csv should be created')
     parser.add_argument('--dir', required=False, help='A run folder from where the csv is created with all runs.')
     parser.add_argument('--name', required=True, help='A name of the csv.')
+    parser.add_argument('--csv', required=True, help='Path of the correct_asnwer.csv')
+    parser.add_argument('--validation', action='store_true', help='Marks the run as a validation run.')
+    parser.add_argument('--number', required=False, help='The run ID')
     args = parser.parse_args()
 
+    number = args.number
+    if not args.number:
+        number = 1
+
     if args.run:
-        create_csv(args.run, 1, args.name)
+        create_csv(args.run, number, args.csv, args.name, args.validation)
     else:
         if args.dir:
-            loop_runs(args.dir, args.name)
+            loop_runs(args.dir, args.name, args.csv)
         else:
             raise ValueError(f"Either a dir or a run must be provided!")
     
