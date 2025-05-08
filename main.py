@@ -6,7 +6,6 @@ Additional features include live status updates, error logging, and configurable
 
 from env_manager import load_valid_models
 from prompt_manager import getPromptsLength
-from get_model_name import get_full_model_name
 from request_manager import run_request
 from save_raw_data import save_raw_data_as_json
 from pdf_reader import get_pdf_reader_version
@@ -79,7 +78,7 @@ def main():
     parser.add_argument('--files', nargs='+', required=True, help='Files or patterns to process (supports globbing).')
     parser.add_argument('--delay', type=int, default=15, help='Delay time in seconds between processing files.')
     parser.add_argument('--temp', type=float, default=1.0, help='The temperature setting for model randomness.')
-    parser.add_argument('--process_all', action='store_true', help='Process all prompts in a single request if set. If --pdf_reader is enabled, it processes each page separately.')
+    parser.add_argument('--single_process', action='store_true', help='Process all prompts in splitted request if set. If --pdf_reader is enabled, it processes each page separately.')
     parser.add_argument('--pdf_reader', action='store_true', help='Uses a local PDF reader to extract content as context for the model.')
 
     args = parser.parse_args()
@@ -93,14 +92,6 @@ def main():
 
     files_to_process = list(set(files_to_process))  # Remove duplicate files
 
-    # Get full model name
-    try:
-        full_model_name = get_full_model_name(args.model)
-    except Exception as e:
-        error_message = f"Error retrieving model information:\n{traceback.format_exc()}"
-        print(error_message)
-        raise ValueError("Error retrieving model information.")
-
     # Get PDF reader version if necessary
     if args.pdf_reader:
         pdf_reader_version = get_pdf_reader_version()
@@ -108,13 +99,13 @@ def main():
         pdf_reader_version = '-'
 
     # Determine processing mode
-    if args.process_all:
-        process_mode = "process full pdf in single request"
-    else:
+    if args.single_process:
         process_mode = "process full pdf with prompt-split requests"
+    else:
+        process_mode = "process full pdf in single request"
 
     # Show processing overview
-    display_overview(full_model_name, files_to_process, args.delay, args.process_all, args.temp)
+    display_overview(args.model, files_to_process, args.delay, not args.single_process, args.temp)
     user_input = input("Press Enter to continue...")
     if user_input != "":
         raise ValueError("Exiting program, user pressed a key other than Enter.")
@@ -138,7 +129,7 @@ def main():
             continue
 
         try:
-            last_output, prompt = run_request(file_path, args.model, args.process_all, args.pdf_reader, args.delay, args.temp)
+            last_output, prompt = run_request(file_path, args.model, not args.single_process, args.pdf_reader, args.delay, args.temp)
                 
             if last_output is None:
                 raise Exception(f"Skipping evaluation for {file_path} due to processing error.")
@@ -146,7 +137,7 @@ def main():
             save_raw_data_as_json(
                 raw_data=last_output, 
                 pdf_name=os.path.basename(file_path), 
-                model_name=full_model_name,
+                model_name=args.model,
                 temp=args.temp,
                 pdf_reader=args.pdf_reader,
                 pdf_reader_version=pdf_reader_version,
