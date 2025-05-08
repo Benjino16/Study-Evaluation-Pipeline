@@ -31,7 +31,7 @@ def delete_all_vector_stores():
             try:
                 client.beta.vector_stores.delete(vector_store_id=vector_store_id)
                 logging.info(f"Vector store {vector_store_id} deleted successfully!")
-            except openai.error.InvalidRequestError:
+            except OpenAI.error.InvalidRequestError:
                 logging.exception(f"Error deleting {vector_store_id}")
             except Exception:
                 logging.exception(f"Unexpected error deleting {vector_store_id}")
