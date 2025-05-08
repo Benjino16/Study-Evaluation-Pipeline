@@ -157,7 +157,10 @@ def compare_data(data, csv: str):
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
 
-        #required_files.remove(entry['PDF_Name'])
+        try:
+            required_files.remove(entry['PDF_Name'])
+        except:
+            logging.warning(entry['PDF_Name'] + " could not be removed from required_files. If you are using a different paper set, ignore this warning.")
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format
