@@ -101,7 +101,7 @@ def create_csv(file_pattern, run_id, correct_answers, output_file=None, validati
             writer.writerow(row)
     logging.info("Created csv for " + file_pattern)
 
-def loop_runs(dir, csv_name, correct_answers):
+def loop_runs(dir, csv_name, correct_answers, number):
     """loops through several runs and creates a CSV from them."""
     
     if not os.path.isdir(dir):
@@ -114,9 +114,10 @@ def loop_runs(dir, csv_name, correct_answers):
         logging.error(f"There are no valid sub folders in {dir}.")
         return
     
-    for i, folder in enumerate(folder_list, start=1):
+    for i, folder in enumerate(folder_list, start=number):
         folder_path = os.path.join(dir, folder) + "/*.json"
         create_csv(folder_path, i, correct_answers, csv_name)
+        logging.info(f"Last number: {i}")
 
 
 def main():
@@ -126,18 +127,16 @@ def main():
     parser.add_argument('--name', required=True, help='A name of the csv.')
     parser.add_argument('--csv', required=True, help='Path of the correct_asnwer.csv')
     parser.add_argument('--validation', action='store_true', help='Marks the run as a validation run.')
-    parser.add_argument('--number', required=False, help='The run ID')
+    parser.add_argument('--number', type=int, required=True, help='The run ID')
     args = parser.parse_args()
 
-    number = args.number
-    if not args.number:
-        number = 1
+    
 
     if args.run:
-        create_csv(args.run, number, args.csv, args.name, args.validation)
+        create_csv(args.run, args.number, args.csv, args.name, args.validation)
     else:
         if args.dir:
-            loop_runs(args.dir, args.name, args.csv)
+            loop_runs(args.dir, args.name, args.csv, args.number)
         else:
             raise ValueError(f"Either a dir or a run must be provided!")
     
