@@ -76,16 +76,18 @@ def load_json(raw_json_path, combine_7abc=False):
             temperature = raw_data.get('Temperature', '-')
             date = raw_data.get('Date', '-')
             pdf_reader_version = raw_data.get('PDF_Reader', '-')
-            if pdf_reader_version == "api-upload":
-                pdf_reader = False
-                pdf_reader_version = "-"
-            else:
-                pdf_reader = True
+            if version <= 1.0:
+                if pdf_reader_version == "api-upload":
+                    pdf_reader = False
+                    pdf_reader_version = "-"
+                else:
+                    pdf_reader = True
             process_mode = raw_data.get('Process_Mode', '-')
 
         if version == 2.0:
             prompt = raw_data.get('Prompt', '-')
             pdf_reader_version = raw_data.get('PDF_Reader_Version', '-')
+            pdf_reader = raw_data.get('PDF_Reader', '-')
 
         # Parse the raw answer string into structured JSON
         answers_json = parse_csv_string_to_json(raw_answer_string, combine_7abc=combine_7abc)
