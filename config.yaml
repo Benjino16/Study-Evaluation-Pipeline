@@ -17,11 +17,11 @@ valid_models:
   - gemini-1.0-pro
   - gemini-1.5-pro
   - gemini-1.5-flash
+  - gemini-1.5-pro-latest
   - o1-preview
   - deepseek-r1:32b
   - deepseek-chat
   #specific models
-  - gemini-1.5-pro-latest
   - gemini-2.0-pro-exp-02-05
   - gemini-2.5-pro-exp-03-25
   - gemini-1.5-pro-002

@@ -70,6 +70,12 @@ def load_json(raw_json_path, combine_7abc=False):
         process_mode = "-"
         prompt = "-"
         pdf_reader_version = "-"
+        id = "-"
+
+        try:
+            id = raw_data.get('ID', '-')
+        except:
+            logging.warning('Run has no ID!')
 
         # Parse additional fields based on version
         if version >= 1.0:
@@ -103,7 +109,8 @@ def load_json(raw_json_path, combine_7abc=False):
             "PDF_Reader_Version": pdf_reader_version,
             "Process_Mode": process_mode,
             "Raw_Data": raw_answer_string,
-            "Prompt": prompt
+            "Prompt": prompt,
+            "ID": id
         }
 
         return data

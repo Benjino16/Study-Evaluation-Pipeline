@@ -10,7 +10,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-def create_csv(file_pattern, run_id, correct_answers, output_file=None, validation: bool=False):
+def create_csv(file_pattern, correct_answers, output_file=None, validation: bool=False):
     """Creates a CSV file from a run, which contains all useful information of the run in long format.
     If there is already a file with the name, the content is appended."""
 
@@ -42,7 +42,7 @@ def create_csv(file_pattern, run_id, correct_answers, output_file=None, validati
 
             row = {
                 #general information of the run
-                'run': run_id,
+                'run': entry.get('ID', 'N/A'),
                 'model_name': entry.get('Model_Name', 'N/A'),
                 'temp': entry.get('Temperature', 'N/A'),
                 "pdf_reader": entry.get('PDF_Reader', 'N/A'),
@@ -101,7 +101,7 @@ def create_csv(file_pattern, run_id, correct_answers, output_file=None, validati
             writer.writerow(row)
     logging.info("Created csv for " + file_pattern)
 
-def loop_runs(dir, csv_name, correct_answers, number):
+def loop_runs(dir, csv_name, correct_answers):
     """loops through several runs and creates a CSV from them."""
     
     if not os.path.isdir(dir):
@@ -114,10 +114,9 @@ def loop_runs(dir, csv_name, correct_answers, number):
         logging.error(f"There are no valid sub folders in {dir}.")
         return
     
-    for i, folder in enumerate(folder_list, start=number):
+    for i, folder in enumerate(folder_list, start=0):
         folder_path = os.path.join(dir, folder) + "/*.json"
-        create_csv(folder_path, i, correct_answers, csv_name)
-        logging.info(f"Last number: {i}")
+        create_csv(folder_path, correct_answers, csv_name)
 
 
 def main():
@@ -127,16 +126,15 @@ def main():
     parser.add_argument('--name', required=True, help='A name of the csv.')
     parser.add_argument('--csv', required=True, help='Path of the correct_asnwer.csv')
     parser.add_argument('--validation', action='store_true', help='Marks the run as a validation run.')
-    parser.add_argument('--number', type=int, required=True, help='The run ID')
     args = parser.parse_args()
 
     
 
     if args.run:
-        create_csv(args.run, args.number, args.csv, args.name, args.validation)
+        create_csv(args.run, args.csv, args.name, args.validation)
     else:
         if args.dir:
-            loop_runs(args.dir, args.name, args.csv, args.number)
+            loop_runs(args.dir, args.name, args.csv)
         else:
             raise ValueError(f"Either a dir or a run must be provided!")
     
