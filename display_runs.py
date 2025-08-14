@@ -3,7 +3,10 @@ import platform
 import argparse
 import json
 from tabulate import tabulate
-from compare_answers import run_comparrisson, print_result
+from compare_answers import run_comparison, print_result
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 def clear_console():
     if platform.system() == "Windows":
@@ -12,7 +15,7 @@ def clear_console():
         os.system("clear")
 
 def read_json_from_folder(folder_path):
-    """Liest die erste nicht versteckte JSON-Datei in einem Ordner und gibt die relevanten Daten zurück."""
+    """Reads the first non-hidden JSON file in a folder and returns the relevant data."""
     for file in os.listdir(folder_path):
         if file.endswith(".json") and not file.startswith("."):
             file_path = os.path.join(folder_path, file)
@@ -27,25 +30,27 @@ def read_json_from_folder(folder_path):
                     "PDF Reader": data.get("PDF_Reader", "N/A"),
                     "Process Mode": data.get("Process_Mode", "N/A")
                 }
-            except Exception as e:
-                print(f"Fehler beim Lesen der Datei {file}: {e}")
+            except Exception:
+                logging.exception(f"Error while trying to read the file: {file}")
                 return None
+
     return None
 
 def show_selection_menu(base_directory) -> str:
+    """Shows a menu with all runs that are in the base_directory. The user can select one of them. The path of the selected run is returned."""
     if not os.path.isdir(base_directory):
-            print(f"Das Verzeichnis {base_directory} existiert nicht.")
-            return
+        logging.error(f"The directory {base_directory} does not exist.")
+        return
 
     
     clear_console()
     folder_list = [f for f in os.listdir(base_directory) if os.path.isdir(os.path.join(base_directory, f)) and not f.startswith(".")]
 
     if not folder_list:
-        print("Es wurden keine gültigen Unterordner gefunden.")
+        logging.error(f"There are no valid sub folders in {base_directory}")
         return
 
-    print("\nDurchlauf-Übersicht:")
+    print("\nRun-Overview")
     table_data = []
     for i, folder in enumerate(folder_list, start=1):
         folder_path = os.path.join(base_directory, folder)
@@ -57,13 +62,13 @@ def show_selection_menu(base_directory) -> str:
     print(tabulate(table_data, headers=headers, tablefmt="grid"))
 
     try:
-        choice = int(input("\nGeben Sie die Nummer des gewünschten Durchlaufs ein (oder 0 zum abbrechen): ")) - 1
+        choice = int(input("\nEnter the number of the desired run (or 0 to cancel):")) - 1
         if choice == -1:
             print("Das Programm wird beendet.")
-            raise("Abbruch...")
+            raise("Exit...")
         if choice < 0 or choice >= len(folder_list):
-            print("Ungültige Auswahl. Bitte versuchen Sie es erneut.")
-            input("Drücken Sie die Eingabetaste, um fortzufahren...")
+            print("Invalid selection. Please try again.")
+            input("Invalid selection. Please try again. press enter to continue...")
             show_selection_menu(base_directory)
 
         selected_folder = os.path.join(base_directory, folder_list[choice])
@@ -72,8 +77,8 @@ def show_selection_menu(base_directory) -> str:
         return selected_run
     
     except ValueError:
-        print("Ungültige Eingabe. Bitte geben Sie eine Zahl ein.")
-        input("Drücken Sie die Eingabetaste, um fortzufahren...")
+        print("Invalid input. Please enter a number.")
+        input("Invalid selection. Please try again. press enter to continue...")
     
 
 def main():
@@ -89,9 +94,9 @@ def main():
     while True:
         selected_run = show_selection_menu(base_directory)
         clear_console()
-        result = run_comparrisson(csv, selected_run, combine7abc)
+        result = run_comparison(csv, selected_run, combine7abc)
         print_result(result)
-        input("\nDrücken Sie die Eingabetaste, um zur Übersicht zurückzukehren...")
+        input("\nPress the Enter key to return to the overview...")
         
 if __name__ == "__main__":
     main()

@@ -1,52 +1,49 @@
 import os
-import json
+import yaml
 from dotenv import load_dotenv, find_dotenv
 
-prompt_path = "prompts.json"
-pdf_path = "../Data/PDFs/"
+"""The environment manager takes care of the correct import of the env variables and the loading of config.yaml."""
 
 dotenv_path = find_dotenv('.env')
+config_path = "config.yaml"
 load_dotenv(dotenv_path)
 
+def config(key):
+    """Loads a variable from the config.yaml with the given key."""
+    with open(config_path, 'r') as f:
+        settings = yaml.safe_load(f)
+    
+    parts = key.split(".")
+    value = settings
+    for part in parts:
+        value = value.get(part)
+        if value is None:
+            raise KeyError(f"Key '{key}' not found in {config_path}")
+    
+    return value
+
+
+# VARIABLES FROM CONFIG
+PROMPT_PATH = config("prompt_file_path")
+GPT_UPLOADED_FILES = config("uploaded_gpt_files")
+
+PDF_FOLDER = config("pdf_folder")
+RESULT_FOLDER = config("result_folder")
+CSV_FOLDER = config("csv_folder")
+
+
+
 def env(key):
+    """Returns the value from the .env file with the given key."""
     return os.getenv(key)
 
-def getQuestion(index: int):
-    with open(prompt_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    prompts = data["prompts"]
-
-    if 0 <= index < len(prompts):
-        return f"{prompts[index]}"
-    else:
-        raise Exception("Prompt Index out of bounds!")
-
-def getPrompt(index=None):
-    with open(prompt_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    system_prompt = data["system_prompt"]
-    closing_prompt = data["closing_prompt"]
-    prompts = data["prompts"]
-
-    if index is None:
-        return f"{system_prompt}\n" + "\n".join(prompts) + f"\n{closing_prompt}"
-    elif 0 <= index < len(prompts):
-        return f"{system_prompt}\n{prompts[index]}\n{closing_prompt}"
-    else:
-        raise Exception("Prompt Index out of bounds!")
-
-
-def getPromptsLength():
-    with open("prompts.json", "r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    prompts = data["prompts"]
-    return len(prompts)
-
 def getPDFPath(number: str):
-    return f"{pdf_path}{number.zfill(4)}.pdf"
+    """Returns the path of the PDF with the specified study number."""
+    return f"{PDF_FOLDER}{number.zfill(4)}.pdf"
 
-if __name__ == '__main__':
-    print(getPrompt())
+def load_valid_models():
+    """Loads the list with the valid models from config.yml."""
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+        valid_models = config['valid_models']
+        return valid_models

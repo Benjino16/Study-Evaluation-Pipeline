@@ -1,0 +1,12 @@
+{
+    "Version": 2.0,
+    "Date": "2025-05-08T11:51:52Z",
+    "Model_Name": "gpt-4o-2024-08-06",
+    "Temperature": 0.2,
+    "PDF_Name": "0005",
+    "PDF_Reader": false,
+    "PDF_Reader_Version": "-",
+    "Process_Mode": "process full pdf in single request",
+    "Prompt": "Test Prompt",
+    "Raw_Data": "Raw Data"
+}

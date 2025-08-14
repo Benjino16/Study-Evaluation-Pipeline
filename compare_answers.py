@@ -3,10 +3,17 @@ import csv
 import sys
 import re
 from collections import defaultdict
-from evaluate_raw import evaluate_all_raw_jsons
+from load_saved_json import load_saved_jsons
 from evaluation import clean_study_number
 from evaluation import parse_json_answer
+import logging
 
+"""This script can be used to evaluate saved responses from the AI models."""
+
+
+logging.basicConfig(level=logging.INFO)
+
+# Papers that should be in the run
 papers = [
     "0005", "0013", "0019", "0031", "0054", "0094", "0098", "0100", "0110", "0124", "0125", "0129", "0172",
     "0191", "0214", "0223", "0226", "0280", "0317", "0379", "0400", "0424", "0435", "0480", "0491", "0535",
@@ -26,6 +33,22 @@ def load_correct_answers(csv_file):
             # Ignore rows with NA answers #TODO not ignore but give ignore option else where
             #if answer != "NA":
             correct_answers[(study_number, prompt_number)] = answer
+    return correct_answers
+
+def load_human_answers(csv_file):
+    """Load human answers from the CSV file into a dictionary."""
+    correct_answers = {}
+    with open(csv_file, newline='') as f:
+        reader = csv.DictReader(f, delimiter=';')
+        for row in reader:
+            study_number = clean_study_number(row['study_number'])
+            prompt_number = row['prompt_number']
+            answer1 = row['run1']
+            answer2 = row['run2']
+
+            # Ignore rows with NA answers #TODO not ignore but give ignore option else where
+            #if answer != "NA":
+            correct_answers[(study_number, prompt_number)] = answer1, answer2
     return correct_answers
 
 def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper):
@@ -82,15 +105,20 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     # Return the count of skipped invalid and missing CSV entries for tracking
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
-def run_comparrisson(csv: str, filepath: str, combine7abc: bool):
-    data = evaluate_all_raw_jsons(filepath, combine7abc)
+def run_comparison(csv: str, filepath: str, combine7abc: bool):
+    data = load_saved_jsons(filepath, combine7abc)
     if not data:
-        print(f"No files found for pattern: {filepath}")
-        sys.exit(1)
+        raise ValueError(f"No files found for pattern: {filepath}")
     return compare_data(data, csv)
 
 def compare_data(data, csv: str):
+    """
+    Compares the data from a run with the answers from a CSV file.
+    data: the extracted data from a run
+    csv: a path of the csv
 
+    returns: a dictionary with usefull information of the comparison
+    """
     csv_file = csv
     # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file)
@@ -129,7 +157,10 @@ def compare_data(data, csv: str):
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
         )
 
-        required_files.remove(entry['PDF_Name'])
+        try:
+            required_files.remove(entry['PDF_Name'])
+        except:
+            logging.warning(entry['PDF_Name'] + " could not be removed from required_files. If you are using a different paper set, ignore this warning.")
 
         # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format
@@ -183,6 +214,10 @@ def compare_data(data, csv: str):
     return result
 
 def print_result(result):
+    """
+    Outputs the information from compare_data().
+    result: should be the data that is returned from compare_data()
+    """
 
     sorted_results = result['pdf_stats']
     question_stats = result['question_stats']
@@ -272,7 +307,7 @@ def main():
     parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
 
     args = parser.parse_args()
-    result = run_comparrisson(args.csv, args.data, args.combine7abc)
+    result = run_comparison(args.csv, args.data, args.combine7abc)
     print_result(result)
 
 

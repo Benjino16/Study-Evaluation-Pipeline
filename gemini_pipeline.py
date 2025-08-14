@@ -1,41 +1,49 @@
 import os
 from env_manager import env
 import google.generativeai as genai
+import logging
 
+logging.basicConfig(level=logging.INFO)
 genai.configure(api_key=env('API_GEMINI'))
 
 # Global list to check for already uploaded pdfs
 uploaded_files = []
 
 def get_filename_without_path_and_extension(filepath: str) -> str:
-    """Extrahiert den Dateinamen ohne Pfad und Erweiterung."""
+    """
+    Extracts the filename without the path and extension.
+    """
     return os.path.splitext(os.path.basename(filepath))[0]
 
 def process_file_with_gemini(prompt: str, filename: str, model: str, temperature: float) -> str:
+    """
+    Processes the file with Gemini model by uploading it if not already uploaded, 
+    and generates content based on the prompt.
+    """
     global uploaded_files
     
-    # Extrahiere Dateinamen ohne Pfad und Erweiterung
+    # Extract filename without path and extension
     file_key = get_filename_without_path_and_extension(filename)
 
-    # Überprüfen, ob das PDF bereits hochgeladen wurde
+    # Check if the PDF has already been uploaded
     for uploaded_file in uploaded_files:
         if uploaded_file["name"] == file_key:
-            print(f"Datei '{file_key}' wurde bereits hochgeladen, verwende gespeichertes File.")
+            logging.info(f"File '{file_key}' was already uploaded. Using the saved version instead.")
             file = uploaded_file["file"]
             break
     else:
-        # Datei hochladen, falls noch nicht in der Liste vorhanden
+        # Upload file if not present in the list
         sample_file = genai.upload_file(path=filename, display_name="Gemini PDF FILE")
-        print(f"Hochgeladene Datei '{sample_file.display_name}' als: {sample_file.uri}")
+        logging.info(f"Uploaded file '{sample_file.display_name}' as: {sample_file.uri}")
 
-        # Datei zur Liste hinzufügen
+        # Add the file to the list
         uploaded_files.append({
             "name": file_key,
             "file": sample_file
         })
         file = sample_file
 
-    # Modell definieren und Antwort generieren
+    # Define the model and generate the response
     model = genai.GenerativeModel(model_name=model)
 
     response = model.generate_content(
@@ -47,6 +55,9 @@ def process_file_with_gemini(prompt: str, filename: str, model: str, temperature
     return response.text
 
 def test_gemini_pipeline():
+    """
+    Tests the Gemini pipeline by making a test call and checking if it responds correctly.
+    """
     try:
         model = genai.GenerativeModel(model_name="gemini-1.5-flash")
         response = model.generate_content(
@@ -54,9 +65,13 @@ def test_gemini_pipeline():
         )
         return response.text != None
     except Exception as e:
-        print(e)
+        logging.exception("Exception while trying to test gemini api.")
         return False
     
 def get_gemini_model_name(model: str) -> str:
+    """
+    Fetches the model information and returns the model name.
+    (The real version is a TODO item)
+    """
     model_info = genai.get_model("models/" + model)
-    return model #TODO GET REAL MODEL VERSIOn
+    return model #TODO GET REAL MODEL VERSION
