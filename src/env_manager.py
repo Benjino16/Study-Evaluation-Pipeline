@@ -5,7 +5,7 @@ from dotenv import load_dotenv, find_dotenv
 """The environment manager takes care of the correct import of the env variables and the loading of config.yaml."""
 
 dotenv_path = find_dotenv('.env')
-config_path = "config.yaml"
+config_path = "configs/config.yaml"
 load_dotenv(dotenv_path)
 
 def config(key):

@@ -1,5 +1,5 @@
-from gemini_pipeline import get_gemini_model_name
-from gpt_pipeline import get_gpt_model_name
+from api_request.gemini_pipeline import get_gemini_model_name
+from api_request.gpt_pipeline import get_gpt_model_name
 
 def get_full_model_name(name: str) -> str:
     """This function receives the name of an AI model as a string and checks the current full name of this model."""

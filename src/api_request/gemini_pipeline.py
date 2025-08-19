@@ -1,5 +1,5 @@
 import os
-from env_manager import env
+from src.env_manager import env
 import google.generativeai as genai
 import logging
 

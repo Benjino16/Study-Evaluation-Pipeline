@@ -6,8 +6,8 @@ and testing the API connection.
 
 import requests
 import json
-from prompt_manager import getPrompt
-from pdf_reader import get_text_from_pdf
+from src.prompt_manager import getPrompt
+from src.services.pdf_reader import get_text_from_pdf
 import logging
 
 logging.basicConfig(level=logging.INFO)
