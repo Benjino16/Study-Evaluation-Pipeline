@@ -6,6 +6,7 @@ from collections import defaultdict
 from sep.evaluation.load_saved_json import load_saved_jsons
 from sep.evaluation.evaluation import clean_study_number
 from sep.evaluation.evaluation import parse_json_answer
+from sep.env_manager import DEFAULT_CSV
 import logging
 
 """This script can be used to evaluate saved responses from the AI models."""
@@ -20,7 +21,7 @@ papers = [
     "0541", "0646", "0665", "0705", "0714", "0732", "0760", "0819", "0827", "0837", "0887", "0891", "0935"
 ]
 
-def load_correct_answers(csv_file):
+def load_correct_answers(csv_file, ignore_na: bool = False):
     """Load correct answers from the CSV file into a dictionary."""
     correct_answers = {}
     with open(csv_file, newline='') as f:
@@ -30,12 +31,12 @@ def load_correct_answers(csv_file):
             prompt_number = row['prompt_number']
             answer = row['answer']
 
-            # Ignore rows with NA answers #TODO not ignore but give ignore option else where
-            #if answer != "NA":
+            if ignore_na and answer == "NA":
+                continue
             correct_answers[(study_number, prompt_number)] = answer
     return correct_answers
 
-def load_human_answers(csv_file):
+def load_human_answers(csv_file, ignore_na: bool = False):
     """Load human answers from the CSV file into a dictionary."""
     correct_answers = {}
     with open(csv_file, newline='') as f:
@@ -46,8 +47,8 @@ def load_human_answers(csv_file):
             answer1 = row['run1']
             answer2 = row['run2']
 
-            # Ignore rows with NA answers #TODO not ignore but give ignore option else where
-            #if answer != "NA":
+            if ignore_na and (answer1 == "NA" or answer2 == "NA"):
+                continue
             correct_answers[(study_number, prompt_number)] = answer1, answer2
     return correct_answers
 
@@ -105,13 +106,13 @@ def compare_answers(data, correct_answers, question_stats, bias_stats, global_bi
     # Return the count of skipped invalid and missing CSV entries for tracking
     return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
 
-def run_comparison(csv: str, filepath: str, combine7abc: bool):
+def run_comparison(csv: str, filepath: str, combine7abc: bool, ignore_na: bool = False):
     data = load_saved_jsons(filepath, combine7abc)
     if not data:
         raise ValueError(f"No files found for pattern: {filepath}")
-    return compare_data(data, csv)
+    return compare_data(data, csv, ignore_na)
 
-def compare_data(data, csv: str):
+def compare_data(data, csv: str, ignore_na: bool = False):
     """
     Compares the data from a run with the answers from a CSV file.
     data: the extracted data from a run
@@ -121,7 +122,7 @@ def compare_data(data, csv: str):
     """
     csv_file = csv
     # Load correct answers from the CSV file
-    correct_answers = load_correct_answers(csv_file)
+    correct_answers = load_correct_answers(csv_file, ignore_na)
 
     required_files = []
     required_files.extend(papers)
@@ -302,12 +303,17 @@ def print_result(result):
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
-    parser.add_argument('--csv', type=str, required=True, help='The csv that the results should be compared to.')
     parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
+    parser.add_argument('--csv', type=str, help='The csv that the results should be compared to.')
     parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
+    parser.add_argument('--include_na', action='store_false', help='Ignores the NA answers, both of the model an the correct answers.')
 
     args = parser.parse_args()
-    result = run_comparison(args.csv, args.data, args.combine7abc)
+
+    csv = args.csv or DEFAULT_CSV
+    ignore_na = args.include_na
+
+    result = run_comparison(csv, args.data, args.combine7abc, ignore_na)
     print_result(result)
 
 

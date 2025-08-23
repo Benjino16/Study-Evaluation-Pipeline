@@ -4,7 +4,7 @@ It supports reading from local PDFs, sending data to a model via API requests, a
 Additional features include live status updates, error logging, and configurable processing modes via command-line arguments.
 """
 
-from sep.env_manager import load_valid_models
+from sep.env_manager import load_valid_models, PDF_FOLDER
 from sep.prompt_manager import getPromptsLength
 from sep.api_request.request_manager import run_request
 from sep.evaluation.save_raw_data import save_raw_data_as_json
@@ -75,7 +75,7 @@ def main():
     """
     parser = argparse.ArgumentParser(description='Process files with specified model (e.g., gpt or gemini).')
     parser.add_argument('--model', required=True, help='Model to use (e.g., gpt-4o, gemini-3).')
-    parser.add_argument('--files', nargs='+', required=True, help='Files or patterns to process (supports globbing).')
+    parser.add_argument('--files', nargs='+', help='Files or patterns to process (supports globbing).')
     parser.add_argument('--delay', type=int, default=15, help='Delay time in seconds between processing files.')
     parser.add_argument('--temp', type=float, default=1.0, help='The temperature setting for model randomness.')
     parser.add_argument('--single_process', action='store_true', help='Process all prompts in splitted request if set. If --pdf_reader is enabled, it processes each page separately.')
@@ -85,9 +85,11 @@ def main():
 
     if args.model not in VALID_MODELS:
         raise ValueError(f"Error: Invalid model '{args.model}' specified. Supported models are: {', '.join(VALID_MODELS)}")
-
+    
+    pdf_path = args.files or [PDF_FOLDER + "*.pdf"]
+    
     files_to_process = []
-    for file_pattern in args.files:
+    for file_pattern in pdf_path:
         files_to_process.extend(glob.glob(file_pattern))
 
     files_to_process = list(set(files_to_process))  # Remove duplicate files

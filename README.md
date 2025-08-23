@@ -72,7 +72,7 @@ After installation you can run commands like:
 
 1. **Start Run**  
    ```bash
-   sep-run --model <string> --files <path> --delay <integer> --temp <float> <--process_all> <--pdf_reader>
+   sep-run --model <string> <--files> <path> --delay <integer> --temp <float> <--process_all> <--pdf_reader>
    ```  
    `--model` the name of the model (supported models are listed in main.py)  
    `--files` the path to the PDF files (supports globbing)  
@@ -83,10 +83,13 @@ After installation you can run commands like:
 
 2. **Evaluate Answers**  
    ```bash
-   sep-compare-answers --csv <string> --data <string>
-   ```  
-   `--csv` the path to the CSV with the correct answers  
+   sep-compare-answers --data <string> <--csv> <string> <--include_na>
+   ```
+
    `--data` the run data (stored in '../Data/Results')  
+   `--csv` the path to the CSV with the correct answers 
+   `--include_na` include NA answers  
+   
 
 ### Example of using the pipeline
 The following example shows how the pipeline can be used. The prerequisite for this is a gemini api key and papers saved as pdf, for which there is already a human evaluation as csv.

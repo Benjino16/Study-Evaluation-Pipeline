@@ -1,10 +1,16 @@
 # Paths for project
+
+#Static Resources
 prompt_file_path: resources/prompts.json
 uploaded_gpt_files: resources/uploaded_gpt_files.json
 
-pdf_folder: data/input/pdfs/
+#Default Inputs
+pdf_folder: data/input/pdfs/main/
+standard_csv_responses: resources/csv/correct_answers.CSV
+
+#Output Paths
 result_folder: data/output/runs/
-csv_folder: resources/csv/
+csv_folder: data/output/csvs/
 
 
 
