@@ -9,7 +9,7 @@ import csv
 import os
 from datetime import datetime, timezone
 import logging
-from .env_manager import RESULT_FOLDER
+from sep.env_manager import RESULT_FOLDER
 
 logging.basicConfig(level=logging.INFO)
 

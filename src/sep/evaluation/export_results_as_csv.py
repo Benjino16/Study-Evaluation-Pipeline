@@ -2,9 +2,9 @@ import argparse
 import csv
 import sys
 import os
-from load_saved_json import load_saved_jsons
-from compare_answers import load_correct_answers
-from evaluation import parse_json_answer, clean_study_number
+from sep.evaluation.load_saved_json import load_saved_jsons
+from sep.evaluation.compare_answers import load_correct_answers
+from sep.evaluation.evaluation import parse_json_answer, clean_study_number
 import logging
 
 logging.basicConfig(level=logging.INFO)

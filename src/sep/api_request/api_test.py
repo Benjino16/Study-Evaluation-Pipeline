@@ -1,7 +1,7 @@
-from gemini_pipeline import test_gemini_pipeline
-from gpt_pipeline import test_gpt_pipeline
-from ollama_pipeline import test_ollama_pipeline
-from gpt_text_pipeline import test_deepseek_pipeline
+from .gemini_pipeline import test_gemini_pipeline
+from .gpt_pipeline import test_gpt_pipeline
+from .ollama_pipeline import test_ollama_pipeline
+from .gpt_text_pipeline import test_deepseek_pipeline
 import logging
 
 logging.basicConfig(level=logging.INFO)

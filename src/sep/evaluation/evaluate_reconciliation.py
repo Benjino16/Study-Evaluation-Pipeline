@@ -7,9 +7,9 @@ import logging
 
 """This script takes care of the evaluation of reconciliation runs."""
 
-from compare_answers import compare_data, print_result, run_comparison
-from load_saved_json import load_saved_jsons
-from evaluation import create_list
+from sep.evaluation.compare_answers import compare_data, print_result, run_comparison
+from sep.evaluation.load_saved_json import load_saved_jsons
+from sep.evaluation.evaluation import create_list
 
 
 logging.basicConfig(level=logging.INFO)

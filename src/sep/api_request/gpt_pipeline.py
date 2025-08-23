@@ -4,13 +4,13 @@ It includes functions to process a PDF with OpenAI, test the GPT pipeline, and g
 """
 
 from openai import OpenAI
-from src.env_manager import env
+from sep.env_manager import env
 from openai.types.beta.threads.message_create_params import (
     Attachment,
     AttachmentToolFileSearch,
 )
 import os
-from src.utils.gpt_file_manager import get_file
+from sep.utils.gpt_file_manager import get_file
 import logging
 
 logging.basicConfig(level=logging.INFO)

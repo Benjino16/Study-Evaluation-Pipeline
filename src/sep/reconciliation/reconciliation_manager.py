@@ -7,10 +7,10 @@ provides an overview of model performance, and initiates a reconciliation proces
 
 import argparse
 import logging
-from evaluation.compare_answers import run_comparison
-from load_saved_json import load_saved_jsons
-from evaluation import create_list
-from reconciliation import reconciliate, run_reconciliation
+from sep.evaluation.compare_answers import run_comparison
+from sep.evaluation.load_saved_json import load_saved_jsons
+from sep.evaluation import create_list
+from sep.reconciliation.reconciliation import reconciliate, run_reconciliation
 
 logging.basicConfig(level=logging.INFO)
 

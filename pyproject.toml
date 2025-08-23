@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "study-evaluation-pipeline"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+  "python-dotenv==1.0.1",
+  "openai==1.52.1",
+  "google-generativeai==0.8.3",
+  "pypdf==5.1.0",
+  "httpx==0.27.2",
+  "tabulate==0.9.0",
+  "pyyaml==6.0.2",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+sep-run = "sep.run:main"
+sep-reconcile = "sep.reconciliation_manager:main"
+sep-api-test = "sep.api_request.api_test:main"
+
+sep-combine-csv-answers = "sep.evaluation.comebine_csv_answers:main"
+sep-create-csv = "sep.evaluation.create_csv:main"
+sep-edit-run-information = "sep.evaluation.edit_run_information:main"
+sep-evaluate-reconciliation = "sep.evaluation.evaluate_reconciliation:main"
+sep-export-results = "sep.evaluation.export_results_as_csv:main"
+sep-set-attribute-of-run = "sep.evaluation.set_attribute_of_run:main"
