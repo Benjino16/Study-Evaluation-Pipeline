@@ -1,7 +1,7 @@
 import json
 import os
 from openai import OpenAI
-import env_manager
+from sep import env_manager
 
 # This script handles file management for uploaded files, including retrieving, storing, and checking for previously uploaded files
 # for a given file. It interacts with the OpenAI client to upload files if they haven't been uploaded already.

@@ -4,11 +4,11 @@ It supports reading from local PDFs, sending data to a model via API requests, a
 Additional features include live status updates, error logging, and configurable processing modes via command-line arguments.
 """
 
-from env_manager import load_valid_models
-from prompt_manager import getPromptsLength
-from request_manager import run_request
-from save_raw_data import save_raw_data_as_json
-from pdf_reader import get_pdf_reader_version
+from sep.env_manager import load_valid_models
+from sep.prompt_manager import getPromptsLength
+from sep.api_request.request_manager import run_request
+from sep.evaluation.save_raw_data import save_raw_data_as_json
+from sep.services.pdf_reader import get_pdf_reader_version
 
 import argparse
 import glob

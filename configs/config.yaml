@@ -1,10 +1,10 @@
 # Paths for project
-prompt_file_path: prompts.json
-uploaded_gpt_files: uploaded_gpt_files.json
+prompt_file_path: resources/prompts.json
+uploaded_gpt_files: resources/uploaded_gpt_files.json
 
-pdf_folder: ../Data/PDFs/
-result_folder: ../Data/Results/
-csv_folder: "../Data/CSVs/"
+pdf_folder: data/input/pdfs/
+result_folder: data/output/runs/
+csv_folder: resources/csv/
 
 
 

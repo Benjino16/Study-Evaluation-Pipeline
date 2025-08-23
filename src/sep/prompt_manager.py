@@ -5,7 +5,7 @@ This module loads prompts from a JSON file and provides functions to retrieve
 individual prompts, all prompts combined, and the total number of prompts.
 """
 
-import env_manager
+from sep import env_manager
 import json
 
 # Load prompts once at the start

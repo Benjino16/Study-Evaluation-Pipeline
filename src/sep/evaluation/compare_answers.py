@@ -3,9 +3,9 @@ import csv
 import sys
 import re
 from collections import defaultdict
-from load_saved_json import load_saved_jsons
-from evaluation import clean_study_number
-from evaluation import parse_json_answer
+from sep.evaluation.load_saved_json import load_saved_jsons
+from sep.evaluation.evaluation import clean_study_number
+from sep.evaluation.evaluation import parse_json_answer
 import logging
 
 """This script can be used to evaluate saved responses from the AI models."""

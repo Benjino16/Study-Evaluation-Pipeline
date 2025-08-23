@@ -9,42 +9,70 @@ A streamlined pipeline that uploads PDFs to Gemini/OpenAI, where language models
 
 ### Installation Steps
 1. **Clone the Repository**  
-   Clone this repository to your local machine.
-   
    ```bash
    git clone https://github.com/Benjino16/Study-Evaluation-Pipeline.git
    cd Study-Evaluation-Pipeline
    ```
 
-2. **Install Requirements**  
-   Install all dependencies listed in `requirements.txt`.
-   
+2. **(Optional) Check Python Version**  
    ```bash
-   pip install -r requirements.txt
+   python --version  # should match requires-python in pyproject (e.g. 3.10+)
    ```
 
-3. **Configure API Keys**  
-   Create a `.env` file in the root directory of the project. This file should contain your API keys for Gemini and OpenAI, formatted as follows:
+3. **Create & Activate Virtual Environment**  
+   ```bash
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1         # Windows PowerShell
+   # source .venv/bin/activate          # macOS/Linux
+   ```
 
-   ```plaintext
+4. **Update Build Tools**  
+   ```bash
+   python -m pip install -U pip wheel setuptools
+   ```
+
+5. **Install Project in Development Mode**  
+   ```bash
+   pip install -e .
+   ```
+
+6. **Configure API Keys**  
+   Create a `.env` file in the project root:
+   ```dotenv
    API_GPT=your_openai_api_key
    API_GEMINI=your_gemini_api_key
    ```
+   > An example .env can be found at `.env.example`
 
-4. **Run Setup Test**  
-   Verify your setup by running the following command. This will check for any issues and confirm that the environment is correctly configured.
-   
+7. **Verify Setup**  
    ```bash
-   python api_test.py
+   # via console command (if script entry is defined)
+   sep-api-test
+
+   # alternatively as module
+   python -m sep.api_request.api_test
    ```
 
 
 ### Commands  
 **Note:** Ensure that your API limits are checked, as processing large volumes may impact usage quotas on Gemini/OpenAI.
 
+After installation you can run commands like:
+
+- sep-run
+- sep-compare-answers
+- sep-create-csv
+- sep-combine-csv-answers
+- sep-edit-run-information
+- sep-evaluate-reconciliation
+- sep-export-results
+- sep-set-attribute-of-run
+- sep-reconcile
+- sep-api-test
+
 1. **Start Run**  
    ```bash
-   python main.py --model <string> --files <path> --delay <integer> --temp <float> <--process_all> <--pdf_reader>
+   sep-run --model <string> --files <path> --delay <integer> --temp <float> <--process_all> <--pdf_reader>
    ```  
    `--model` the name of the model (supported models are listed in main.py)  
    `--files` the path to the PDF files (supports globbing)  
@@ -55,7 +83,7 @@ A streamlined pipeline that uploads PDFs to Gemini/OpenAI, where language models
 
 2. **Evaluate Answers**  
    ```bash
-   python compare_answers.py --csv <string> --data <string>
+   sep-compare-answers --csv <string> --data <string>
    ```  
    `--csv` the path to the CSV with the correct answers  
    `--data` the run data (stored in '../Data/Results')  
@@ -65,7 +93,7 @@ The following example shows how the pipeline can be used. The prerequisite for t
 
 1. **Start a run**  
    ```bash
-   python main.py --model gemini-1.5-pro --files "papers/*.pdf" --delay 30 --temp 0.8
+   sep-run --model gemini-1.5-pro --files "papers/*.pdf" --delay 30 --temp 0.8
    ```  
    It will show an overview of the used model, estimated time and a few other informations. Press `Enter Key` to start the run.  
    During the run, you can see the responses of the LLM, possible errors of the API and the progress. After each API call, the data is saved in the configurieten folder (default: “../Data/Results”).
@@ -73,12 +101,12 @@ The following example shows how the pipeline can be used. The prerequisite for t
 2. **Evaluate data from the run**  
    To evaluate the data after the run, you can use the following command to compare it with the correct answers that have already been saved.
    ```bash
-   python compare_answers.py --csv "correct_answers.CSV" --data "../Data/Results/raw-*.json"
+   sep-compare-answers --csv ".\resources\csv\correct_answers.CSV" --data ".\data\output\runs\raw-*.json"
    ``` 
    An overview of the run with statistics is now displayed. The accuracy of the run can also be seen there.
 
 3. **Export data as csv**
    ```bash
-   python create_csv.py --run "../Data/Results/raw-*.json" --name "exported_data.csv" --csv "correct_answers.CSV" --number 1
+   sep-create-csv --run ".\data\output\runs\raw-*.json" --name "exported_data.csv" --csv ".\resources\csv\correct_answers.CSV" --number 1
    ``` 
    This will export the data of the run as csv and additionally append the correct answers.

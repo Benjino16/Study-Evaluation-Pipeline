@@ -6,7 +6,7 @@ It supports version-based parsing and merging of answers into a unified format f
 import os
 import json
 import glob
-from evaluation import parse_csv_string_to_json
+from sep.evaluation.evaluation import parse_csv_string_to_json
 import logging
 
 logging.basicConfig(level=logging.INFO)

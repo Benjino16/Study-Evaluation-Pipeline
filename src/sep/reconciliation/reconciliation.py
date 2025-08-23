@@ -4,9 +4,9 @@ It uses questions, answers, and PDFs as context to evaluate and identify mistake
 """
 
 import time
-from request_manager import run_prompt
-from env_manager import getQuestion, getPDFPath
-from save_raw_data import save_raw_data_as_json
+from sep.api_request.request_manager import run_prompt
+from sep.env_manager import getPDFPath
+from sep.evaluation.save_raw_data import save_raw_data_as_json
 import logging
 
 logging.basicConfig(level=logging.INFO)

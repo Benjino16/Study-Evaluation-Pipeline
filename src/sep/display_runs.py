@@ -3,8 +3,9 @@ import platform
 import argparse
 import json
 from tabulate import tabulate
-from compare_answers import run_comparison, print_result
 import logging
+
+from sep.evaluation.compare_answers import run_comparison, print_result
 
 logging.basicConfig(level=logging.INFO)
 
