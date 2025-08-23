@@ -42,7 +42,7 @@ A streamlined pipeline that uploads PDFs to Gemini/OpenAI, where language models
    API_GPT=your_openai_api_key
    API_GEMINI=your_gemini_api_key
    ```
-   > An example .env can be found at `.env.example`
+   > An example .env can be found at [`.env.example`](.env.example)
 
 7. **Verify Setup**  
    ```bash
