@@ -72,23 +72,42 @@ After installation you can run commands like:
 
 1. **Start Run**  
    ```bash
-   sep-run --model <string> <--files> <path> --delay <integer> --temp <float> <--process_all> <--pdf_reader>
+   sep-run --model <string> [--files <path>] [--delay <integer>] [--temp <float>] [--process_all] [--pdf_reader]
    ```  
+   **Required**  
    `--model` the name of the model (supported models are listed in main.py)  
+
+   **Optional**  
    `--files` the path to the PDF files (supports globbing)  
    `--delay` delay in seconds to wait between API requests  
    `--temp` the temperature of the model (not all models support all temperatures)  
-   `--single_process` use this flag if all prompts should be put into splitted API request
+   `--single_process` use this flag if all prompts should be put into splitted API request  
    `--pdf_reader` this flag enables the local PDF reader. Only the text of the PDF will be passed to the API in the model's content window.  
 
 2. **Evaluate Answers**  
    ```bash
-   sep-compare-answers --data <string> <--csv> <string> <--include_na>
+   sep-compare-answers --data <string> [--csv <string>] [--include_na]
    ```
-
+   **Required**  
    `--data` the run data (stored in '../Data/Results')  
-   `--csv` the path to the CSV with the correct answers 
+
+   **Optional**  
+   `--csv` the path to the CSV with the correct answers  
    `--include_na` include NA answers  
+   
+3. **Export Data**  
+   ```bash
+   sep-create-csv (--run <string> | --dir <string>) --name <string> --csv <string> [--validation]
+   ```
+   **Required**  
+   `--run` A path to a specific run from which the csv should be created  
+   `--dir` A path to a run folder from where the csv is created with all runs.  
+   `--name` The name of the exported csv.  
+   `--csv` The path of the correct answer csv.  
+
+
+   **Optional**  
+   `--validation` marks the run as a validation run  
    
 
 ### Example of using the pipeline
