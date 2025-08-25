@@ -9,13 +9,12 @@ import csv
 import os
 from datetime import datetime, timezone
 import logging
-from sep.env_manager import RESULT_FOLDER
 
 logging.basicConfig(level=logging.INFO)
 
 version_number = 2.0
 
-def save_raw_data_as_json(raw_data, pdf_name, model_name, temp: float, pdf_reader, pdf_reader_version, process_mode, prompt):
+def save_raw_data_as_json(raw_data, pdf_name, model_name, temp: float, pdf_reader, pdf_reader_version, process_mode, prompt, save_folder):
     """
     Saves raw output data along with metadata into a JSON file.
     """
@@ -28,7 +27,7 @@ def save_raw_data_as_json(raw_data, pdf_name, model_name, temp: float, pdf_reade
 
     # Set output filename
     json_name = f"raw-{pdf_name}-{timestamp}.json"
-    output_filename = RESULT_FOLDER + json_name
+    output_filename = save_folder + json_name
 
     # Create UTC timestamp
     now_utc = datetime.now(timezone.utc)
