@@ -31,6 +31,7 @@ PDF_FOLDER = config("pdf_folder")
 RESULT_FOLDER = config("result_folder")
 CSV_FOLDER = config("csv_folder")
 DEFAULT_CSV = config("standard_csv_responses")
+DEFAULT_CSV_COMBINED = config("standard_csv_responses_7abc_combined")
 
 
 def env(key):

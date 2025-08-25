@@ -6,6 +6,8 @@ from tabulate import tabulate
 import logging
 
 from sep.evaluation.compare_answers import run_comparison, print_result
+from sep.env_manager import RESULT_FOLDER, DEFAULT_CSV, DEFAULT_CSV_COMBINED
+from sep.utils.get_run_dir import get_list_of_run_paths
 
 logging.basicConfig(level=logging.INFO)
 
@@ -45,7 +47,7 @@ def show_selection_menu(base_directory) -> str:
 
     
     clear_console()
-    folder_list = [f for f in os.listdir(base_directory) if os.path.isdir(os.path.join(base_directory, f)) and not f.startswith(".")]
+    folder_list = get_list_of_run_paths(base_directory)
 
     if not folder_list:
         logging.error(f"There are no valid sub folders in {base_directory}")
@@ -84,18 +86,19 @@ def show_selection_menu(base_directory) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
-    parser.add_argument('--dir', required=True, help='Base Directory of the run data.')
+    parser.add_argument('--dir', help='Base Directory of the run data.')
     parser.add_argument('--combine7abc', action='store_true', help='Combines 7abc.')
     args = parser.parse_args()
 
-    base_directory = args.dir
+    base_directory = args.dir or RESULT_FOLDER
+    
     combine7abc = args.combine7abc
-    csv = "correct_answers_combined.csv" if combine7abc else "correct_answers.csv"
+    csv = DEFAULT_CSV_COMBINED if combine7abc else DEFAULT_CSV
 
     while True:
         selected_run = show_selection_menu(base_directory)
         clear_console()
-        result = run_comparison(csv, selected_run, combine7abc)
+        result = run_comparison(csv, selected_run, combine7abc, True)
         print_result(result)
         input("\nPress the Enter key to return to the overview...")
         

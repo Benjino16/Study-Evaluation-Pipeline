@@ -7,9 +7,10 @@ uploaded_gpt_files: resources/uploaded_gpt_files.json
 #Default Inputs
 pdf_folder: data/input/pdfs/main/
 standard_csv_responses: resources/csv/correct_answers.CSV
+standard_csv_responses_7abc_combined: resources/csv/correct_answers_combined.CSV
 
 #Output Paths
-result_folder: data/output/runs/
+result_folder: data/output/runs/main/
 csv_folder: data/output/csvs/
 
 
