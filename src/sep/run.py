@@ -4,7 +4,7 @@ It supports reading from local PDFs, sending data to a model via API requests, a
 Additional features include live status updates, error logging, and configurable processing modes via command-line arguments.
 """
 
-from sep.env_manager import load_valid_models, PDF_FOLDER
+from sep.env_manager import load_valid_models, PDF_FOLDER, RESULT_FOLDER
 from sep.prompt_manager import getPromptsLength
 from sep.api_request.request_manager import run_request
 from sep.evaluation.save_raw_data import save_raw_data_as_json
@@ -86,6 +86,9 @@ def main():
     if args.model not in VALID_MODELS:
         raise ValueError(f"Error: Invalid model '{args.model}' specified. Supported models are: {', '.join(VALID_MODELS)}")
     
+    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    save_folder = RESULT_FOLDER + f"{args.model}-temp{args.temp}-{timestamp}/"
+
     pdf_path = args.files or [PDF_FOLDER + "*.pdf"]
     
     files_to_process = []
@@ -129,13 +132,12 @@ def main():
             display_status(args.model, os.path.basename(file_path), 
                            f"{processed_count}/{total_files}", failed_count, errors, last_output)
             continue
-
         try:
             last_output, prompt = run_request(file_path, args.model, not args.single_process, args.pdf_reader, args.delay, args.temp)
                 
             if last_output is None:
                 raise Exception(f"Skipping evaluation for {file_path} due to processing error.")
-            
+
             save_raw_data_as_json(
                 raw_data=last_output, 
                 pdf_name=os.path.basename(file_path), 
@@ -144,7 +146,8 @@ def main():
                 pdf_reader=args.pdf_reader,
                 pdf_reader_version=pdf_reader_version,
                 process_mode=process_mode,
-                prompt=prompt)
+                prompt=prompt,
+                save_folder=save_folder)
 
         except Exception as e:
             error_message = f"Error processing {file_path}:\n{traceback.format_exc()}"

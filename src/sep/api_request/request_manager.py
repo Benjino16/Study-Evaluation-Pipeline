@@ -9,6 +9,7 @@ from .gemini_pipeline import process_file_with_gemini
 from .gpt_pipeline import process_pdf_with_openai
 from .gpt_text_pipeline import process_text_with_openai
 from .ollama_pipeline import process_text_with_ollama
+from.test_pipeline import process_test_pipeline
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -86,5 +87,9 @@ def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temper
         else:
             # Ollama models require PDF reader mode
             raise ValueError("A request to an ollama model is not possible without a PDF reader. Use --pdf_reader in the arguments.")
+        
+    elif model.lower().startswith('test'):
+        last_output = process_test_pipeline(prompt, file_path, model, temperature)
+
 
     return last_output
