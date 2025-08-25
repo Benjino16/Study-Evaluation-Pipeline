@@ -16,7 +16,7 @@ def create_csv(file_pattern, correct_answers, output_file=None, validation: bool
 
     data = load_saved_jsons(file_pattern, False)
     correct_answers = load_correct_answers(correct_answers)
-    human_answers = load_human_answers("human_reviewer_answers.csv")
+    human_answers = load_human_answers("resources\csv\human_reviewer_answers.csv")
 
     rows = []
     for entry in data:
