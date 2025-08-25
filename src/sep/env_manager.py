@@ -30,7 +30,7 @@ GPT_UPLOADED_FILES = config("uploaded_gpt_files")
 PDF_FOLDER = config("pdf_folder")
 RESULT_FOLDER = config("result_folder")
 CSV_FOLDER = config("csv_folder")
-
+DEFAULT_CSV = config("standard_csv_responses")
 
 
 def env(key):
