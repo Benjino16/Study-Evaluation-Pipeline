@@ -34,3 +34,6 @@ valid_models:
   - gpt-4o-2024-08-06 #use this for gpt-4o
   - gpt-4o-2024-11-20
   - gpt-4o-2024-05-13
+  #test model
+  - test
+  - test-exception
