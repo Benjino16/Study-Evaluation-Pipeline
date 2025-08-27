@@ -9,15 +9,21 @@ import glob
 from sep.utils.parse_csv_answers import parse_csv_string_to_json
 import logging
 
+from sep.models.llm_runs.run import LLMRun, LLMRequest
+from sep.models.llm_runs.evaluation import LLMEvaluatedQuestion
+
 logging.basicConfig(level=logging.INFO)
 
-def load_saved_jsons(file_pattern, combine_7abc=False):
+def load_saved_jsons(file_pattern, combine_7abc=False) -> LLMRun:
     """
     Loads and parses multiple JSON files matching a given file pattern.
     
     Returns:
         list: A list of parsed JSON objects.
     """
+
+    llmRun = LLMRun(requests=[])
+
     # Find all files matching the file pattern
     json_files = glob.glob(file_pattern)
     
@@ -25,19 +31,31 @@ def load_saved_jsons(file_pattern, combine_7abc=False):
         return []
 
     results = []
-    for json_file in json_files:
+
+    run_data_set=False
+    for json_file, i in json_files:
         # Skip if not a file
         if not os.path.isfile(json_file):
             continue
-        
         # Load and parse the JSON file
-        result = load_json(json_file, combine_7abc)
-        if result:
-            results.append(result)
-    
-    return results
+        llmrequest = load_llm_request_from_json(json_file, combine_7abc)
+        if llmrequest:
+            llmRun.add_request(llmrequest)
+            if not run_data_set:
+                llmRun.id = llmrequest.run_id
+                llmRun.model = llmrequest.model
+                llmRun.date = llmrequest.date
+                llmRun.pdf_reader = llmrequest.pdf_reader
+                llmRun.pdf_reader_version = llmrequest.pdf_reader
+                llmRun.process_mode = llmrequest.process_mode
+                llmRun.raw_input = llmrequest.raw_input
+                llmRun.temperature = llmrequest.temperature
 
-def load_json(raw_json_path, combine_7abc=False):
+                run_data_set=True
+    
+    return llmRun
+
+def load_llm_request_from_json(raw_json_path, combine_7abc=False) -> LLMRequest:
     """
     Loads and parses a single JSON file, handling different versions of saved data formats.
     
@@ -98,22 +116,23 @@ def load_json(raw_json_path, combine_7abc=False):
         # Parse the raw answer string into structured JSON
         answers_json = parse_csv_string_to_json(raw_answer_string, combine_7abc=combine_7abc)
 
-        data = {
-            "Version": version,
-            "PDF_Name": pdf_name,
-            "Model_Name": model_name,
-            "Prompts": answers_json,
-            "Temperature": temperature,
-            "Date": date,
-            "PDF_Reader": pdf_reader,
-            "PDF_Reader_Version": pdf_reader_version,
-            "Process_Mode": process_mode,
-            "Raw_Data": raw_answer_string,
-            "Prompt": prompt,
-            "ID": id
-        }
+        llmRequest = LLMRequest(
+            version=version,
+            paper=pdf_name,
+            model=model_name,
+            temperature=temperature,
+            date=date,
+            pdf_reader=pdf_reader,
+            pdf_reader_version=pdf_reader_version,
+            process_mode=process_mode,
+            raw_input=prompt,
+            id=id,
+            raw_output=raw_answer_string,
+            run_id=id
+            answers=[LLMEvaluatedQuestion(id=ans['number'], answer=ans['answer'], quote=ans['quote']) for ans in answers_json]
+            )
 
-        return data
+        return llmRequest
 
     except Exception:
         logging.exception(f"Error while processing file {raw_json_path}")
