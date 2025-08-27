@@ -16,7 +16,6 @@ def create_csv(file_pattern, correct_answers, output_file=None, validation: bool
 
     data = load_saved_jsons(file_pattern, False)
     correct_answers = load_correct_answers(correct_answers)
-    human_answers = load_human_answers("resources\csv\human_reviewer_answers.csv")
 
     rows = []
     for entry in data:
@@ -33,11 +32,6 @@ def create_csv(file_pattern, correct_answers, output_file=None, validation: bool
                 correct_answer = correct_answers[(study_number, question_number)]
             except:
                 correct_answer = "not in dataset"
-
-            try:
-                human1, human2 = human_answers[(study_number, question_number)]
-            except:
-                human1, human2 = "not in dataset", "not in dataset"
             
 
             row = {
@@ -62,9 +56,7 @@ def create_csv(file_pattern, correct_answers, output_file=None, validation: bool
                 
                 
                 'answer_parsed': parse_json_answer(response.get('answer', 'N/A')),
-                'correct_answer': correct_answer,
-                'human1': human1,
-                'human2': human2
+                'correct_answer': correct_answer
             }
             rows.append(row)
 
@@ -91,9 +83,7 @@ def create_csv(file_pattern, correct_answers, output_file=None, validation: bool
             'answer',
             'explanation',
             'answer_parsed',
-            'correct_answer',
-            'human1',
-            'human2'
+            'correct_answer'
         ])
         if not file_exists:
             writer.writeheader()
