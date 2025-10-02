@@ -4,7 +4,7 @@ import sys
 import os
 from sep.evaluation.load_saved_json import load_saved_jsons
 from sep.evaluation.compare_answers import load_correct_answers
-from sep.evaluation.evaluation import parse_json_answer, clean_study_number
+from sep.utils.parse_csv_answers import parse_json_answer, clean_study_number
 import logging
 
 logging.basicConfig(level=logging.INFO)

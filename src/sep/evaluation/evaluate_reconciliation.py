@@ -9,7 +9,7 @@ import logging
 
 from sep.evaluation.compare_answers import compare_data, print_result, run_comparison
 from sep.evaluation.load_saved_json import load_saved_jsons
-from sep.evaluation.evaluation import create_list
+from sep.utils.parse_csv_answers import create_list
 
 
 logging.basicConfig(level=logging.INFO)
