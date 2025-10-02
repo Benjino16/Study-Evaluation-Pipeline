@@ -11,14 +11,14 @@ class LLMRun:
     id: int
     model: str
     temperature: float
-    date: datetime = field(default_factory=datetime.utcnow)
+
 
     pdf_reader: bool
     pdf_reader_version: str
     process_mode: str
 
     raw_input: str
-
+    date: datetime = field(default_factory=datetime.utcnow)
     requests: List[LLMRequest] = field(default_factory=list)
 
 

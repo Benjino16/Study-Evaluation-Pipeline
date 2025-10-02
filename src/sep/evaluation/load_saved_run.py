@@ -128,9 +128,9 @@ def load_llm_request_from_json(raw_json_path, combine_7abc=False) -> LLMRequest:
             raw_input=prompt,
             id=id,
             raw_output=raw_answer_string,
-            run_id=id
+            run_id=id,
             answers=[LLMEvaluatedQuestion(id=ans['number'], answer=ans['answer'], quote=ans['quote']) for ans in answers_json]
-            )
+        )
 
         return llmRequest
 

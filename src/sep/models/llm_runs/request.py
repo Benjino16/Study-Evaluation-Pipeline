@@ -12,7 +12,7 @@ class LLMRequest:
     paper: str
     model: str
     temperature: float
-    date: datetime = field(default_factory=datetime.utcnow)
+
     pdf_reader: bool
     pdf_reader_version: str
     process_mode: str
@@ -22,6 +22,7 @@ class LLMRequest:
 
     run_id: int
 
+    date: datetime = field(default_factory=datetime.utcnow)
     evaluated_questions: List[LLMEvaluatedQuestion] = field(default_factory=list)
 
     def add_question(self, question_id: str, answer: str, quote: str) -> LLMEvaluatedQuestion:
