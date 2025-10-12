@@ -1,6 +1,6 @@
 import random
 from sep.prompt_designer.adjust_prompt import adjust_prompt
-#from sep.api_request.request_manager import run_request
+from sep.process_paper import process_paper
 from sep.utils.load_json import load_json
 from sep.prompt_designer.json_log import init_log, update_log
 
@@ -44,9 +44,13 @@ def _get_paper_with_index(papers: list[str], index: int) -> str:
 
 def _evaluate_prompt(prompt: str, paper: str) -> float:
     """Test the prompt using all papers and return the accuracy."""
-    #raw_answer = run_request(paper, "gemini-pro-2.5", True, False, 0, 1.0)
+    raw_answer = process_paper(
+        prompt=prompt,
+        model="gemini-2.5-pro",
+        file_path=paper,
+    )
     return random.random()
 
 
 if __name__ == "__main__":
-    run_prompt_designer(PATH_TO_BASIC_PROMPT, 3, [r"D:\dev\github\Study-Evaluation-Pipeline\data\input\pdfs\main\0005.pdf", r"D:\dev\github\Study-Evaluation-Pipeline\data\input\pdfs\main\0013.pdf"])
+    run_prompt_designer(PATH_TO_BASIC_PROMPT, 2, [r"D:\dev\github\Study-Evaluation-Pipeline\data\input\pdfs\main\0005.pdf", r"D:\dev\github\Study-Evaluation-Pipeline\data\input\pdfs\main\0013.pdf"])

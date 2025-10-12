@@ -6,7 +6,6 @@ and testing the API connection.
 
 import requests
 import json
-from sep.prompt_manager import getPrompt
 from sep.services.pdf_reader import get_text_from_pdf
 import logging
 
@@ -14,15 +13,13 @@ logging.basicConfig(level=logging.INFO)
 
 api_url = 'https://quest-gpu-06.charite.de/api/generate'
 
-def process_text_with_ollama(filename: str, model: str, temp: float) -> str:
+def process_text_with_ollama(prompt: str, filename: str, model: str, temp: float) -> str:
     """
     Processes a PDF file using the specified model via the Ollama API.
     
     Returns:
         str: Model's response text.
     """
-    # Process all prompts in a single request
-    prompt = getPrompt()
     context = get_text_from_pdf(filename)
 
     data = {
