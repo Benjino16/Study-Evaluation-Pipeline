@@ -6,6 +6,8 @@ from collections import defaultdict
 from sep.evaluation.load_saved_json import load_saved_jsons
 from sep.utils.parse_csv_answers import clean_study_number
 from sep.utils.parse_csv_answers import parse_json_answer
+from collections import defaultdict
+import re
 from sep.env_manager import DEFAULT_CSV
 import logging
 
@@ -112,16 +114,13 @@ def run_comparison(csv: str, filepath: str, combine7abc: bool, ignore_na: bool =
         raise ValueError(f"No files found for pattern: {filepath}")
     return compare_data(data, csv, ignore_na)
 
+
 def compare_data(data, csv: str, ignore_na: bool = False):
     """
-    Compares the data from a run with the answers from a CSV file.
-    data: the extracted data from a run
-    csv: a path of the csv
-
-    returns: a dictionary with usefull information of the comparison
+    Vergleicht die Daten aus einem Run mit den Antworten aus einer CSV-Datei.
+    Gibt alle berechneten Metriken inklusive Accuracy zurück.
     """
     csv_file = csv
-    # Load correct answers from the CSV file
     correct_answers = load_correct_answers(csv_file, ignore_na)
 
     required_files = []
@@ -129,30 +128,19 @@ def compare_data(data, csv: str, ignore_na: bool = False):
 
     global_matches = 0
     global_total_comparisons = 0
-    skipped_invalid_format = 0  # Counter for invalid format answers
+    skipped_invalid_format = 0
     skipped_list = []
-    skipped_no_answer_in_csv = 0  # Counter for missing CSV answers
+    skipped_no_answer_in_csv = 0
+    failed_paper = []
 
-    failed_paper = []  # List to keep track of papers where all answers were skipped
-
-    # Dictionary to store matches and total comparisons for each question (prompt)
     question_stats = defaultdict(lambda: {'matches': 0, 'total': 0})
-
-    # Dictionary to store bias statistics for each question (prompt)
     bias_stats = defaultdict(lambda: {'yes_to_no': 0, 'no_to_yes': 0})
-
-    # Dictionary to store detailed statistics (study numbers) for each question (prompt)
     detailed_stats = defaultdict(lambda: {'yes_to_no': [], 'no_to_yes': []})
-
-    
-    # Global bias counters
     global_bias = {'yes_to_no': 0, 'no_to_yes': 0}
 
-        # Compare each JSON file with the correct answers
-    # List to store results for sorting
     results = []
 
-    # Original loop for processing data entries
+    # === Hauptvergleich ===
     for entry in data:
         matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv = compare_answers(
             entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
@@ -160,146 +148,135 @@ def compare_data(data, csv: str, ignore_na: bool = False):
 
         try:
             required_files.remove(entry['PDF_Name'])
-        except:
-            logging.warning(entry['PDF_Name'] + " could not be removed from required_files. If you are using a different paper set, ignore this warning.")
+        except Exception:
+            print(f"{entry['PDF_Name']} could not be removed from required_files. "
+                            f"If you are using a different paper set, ignore this warning.")
 
-        # Accumulate skipped invalid format and missing CSV answers
         skipped_invalid_format += skipped_format
-        for skipped_entry in skipped_format_list:
-            skipped_list.append(f"- File: {entry['PDF_Name']} {skipped_entry}")
+        skipped_list.extend([f"- File: {entry['PDF_Name']} {s}" for s in skipped_format_list])
         skipped_no_answer_in_csv += skipped_no_csv
 
         if total_comparisons > 0:
             match_percentage = (matches / total_comparisons) * 100
-            # Save result to list for later sorting
-            results.append({
-                'PDF_Name': entry['PDF_Name'],
-                'match_percentage': match_percentage,
-                'matches': matches,
-                'total_comparisons': total_comparisons
-            })
         else:
-            # Save result indicating no valid comparisons
-            results.append({
-                'PDF_Name': entry['PDF_Name'],
-                'match_percentage': None,
-                'matches': matches,
-                'total_comparisons': total_comparisons
-            })
+            match_percentage = None
+
+        results.append({
+            'PDF_Name': entry['PDF_Name'],
+            'match_percentage': match_percentage,
+            'matches': matches,
+            'total_comparisons': total_comparisons
+        })
 
         global_matches += matches
         global_total_comparisons += total_comparisons
 
-    # Sort results by match_percentage (putting entries with None at the end)
+    # === Sortieren nach Accuracy ===
     sorted_results = sorted(
         results,
         key=lambda x: x['match_percentage'] if x['match_percentage'] is not None else -1,
         reverse=True
     )
 
-    result = {
-        'pdf_stats': sorted_results,
-        'question_stats': question_stats,
+    # === Globale Accuracy ===
+    if global_total_comparisons > 0:
+        global_accuracy = (global_matches / global_total_comparisons) * 100
+    else:
+        global_accuracy = None
 
-        'bias_stats': bias_stats,
+    # === Fragebasierte Accuracy ===
+    question_accuracy = {}
+    for q, stats in question_stats.items():
+        total = stats['total']
+        question_accuracy[q] = (stats['matches'] / total * 100) if total > 0 else None
+
+    # === Endergebnis vorbereiten ===
+    result = {
+        'pdf_stats': sorted_results,               # pro Datei
+        'question_stats': dict(question_stats),    # Rohdaten
+        'question_accuracy': question_accuracy,    # pro Frage in %
+        'bias_stats': dict(bias_stats),
         'global_bias': global_bias,
         'global_matches': global_matches,
         'global_total_comparisons': global_total_comparisons,
-
+        'global_accuracy': global_accuracy,        # ← Wichtig: direkt nutzbar!
         'skipped_no_answer_in_csv': skipped_no_answer_in_csv,
         'skipped_list': skipped_list,
         'skipped_invalid_format': skipped_invalid_format,
         'failed_paper': failed_paper,
         'missing_paper': required_files
     }
+
     return result
+
 
 def print_result(result):
     """
-    Outputs the information from compare_data().
-    result: should be the data that is returned from compare_data()
+    Zeigt die Ergebnisse von compare_data() formatiert an.
+    Erwartet, dass alle Berechnungen bereits in result enthalten sind.
     """
-
     sorted_results = result['pdf_stats']
     question_stats = result['question_stats']
+    question_accuracy = result['question_accuracy']
     global_bias = result['global_bias']
-    global_matches = result['global_matches']
-    global_total_comparisons = result['global_total_comparisons']
     bias_stats = result['bias_stats']
+    skipped_invalid_format = result['skipped_invalid_format']
     skipped_no_answer_in_csv = result['skipped_no_answer_in_csv']
     skipped_list = result['skipped_list']
-    skipped_invalid_format = result['skipped_invalid_format']
     failed_paper = result['failed_paper']
     missing_paper = result['missing_paper']
+    global_accuracy = result['global_accuracy']
+    global_matches = result['global_matches']
+    global_total_comparisons = result['global_total_comparisons']
 
-    # Print the sorted results
-    for result in sorted_results:
-        if result['match_percentage'] is not None:
-            print(f"File: {result['PDF_Name']} - Match Percentage: {result['match_percentage']:.2f}% ({result['matches']}/{result['total_comparisons']} matches)")
+    # === PDF-Ergebnisse ===
+    for r in sorted_results:
+        if r['match_percentage'] is not None:
+            print(f"File: {r['PDF_Name']} - Match Percentage: {r['match_percentage']:.2f}% "
+                  f"({r['matches']}/{r['total_comparisons']} matches)")
         else:
-            print(f"File: {result['PDF_Name']} - No valid comparisons")
+            print(f"File: {r['PDF_Name']} - No valid comparisons")
 
-    
-
-    # Print statistics for skipped answers
-    print(f"\n\033[31mError in format:   {skipped_invalid_format}\033[0m" if skipped_invalid_format != 0 else f"\nError in format:   {skipped_invalid_format}")
+    # === Fehlerstatistik ===
+    print(f"\nError in format:   {skipped_invalid_format}")
     print(f"CSV entry missing: {skipped_no_answer_in_csv}")
     if skipped_list:
-        print(f"Format Error List:")
-        print(* skipped_list, sep='\n')
+        print("Format Error List:")
+        print(*skipped_list, sep='\n')
 
-    def custom_sort_key(question):
-        """Sort keys so that numeric parts are sorted numerically and alphabetically for suffixes."""
-        match = re.match(r"(\d+)([a-zA-Z]*)", question)
-        if match:
-            number = int(match.group(1))
-            suffix = match.group(2)
-            return (number, suffix)
-        return (float('inf'), question)  # Put non-matching keys at the end if any
-
-    # Print combined question-based statistics in a formatted single-line per question
-    # Define the header with consistent width
-    header = f"\n{'Question':<12} {'Match %':>8} {'Matches':<6} | {'Bias (yes/no)':<1}"
+    # === Fragenstatistik ===
+    print("\nQuestion Stats:")
+    header = f"{'Question':<12} {'Match %':>8} {'Matches':<6} | {'Bias (yes/no)':<1}"
     print(header)
-    print('-' * len(header))  # Print a line under the header for readability
+    print('-' * len(header))
 
-    # Sort the keys using custom_sort_key
-    for question in sorted(question_stats.keys(), key=custom_sort_key):
-        stats = question_stats[question]
-        bias = bias_stats[question]
+    def custom_sort_key(q):
+        match = re.match(r"(\d+)([a-zA-Z]*)", q)
+        return (int(match.group(1)), match.group(2)) if match else (float('inf'), q)
 
-        total_comparisons = stats['total']
-        matches = stats['matches']
-        yes_to_no = bias['yes_to_no']
-        no_to_yes = bias['no_to_yes']
-
-        if total_comparisons > 0:
-            question_match_percentage = (matches / total_comparisons) * 100
-            # Format each line with consistent width for matches and bias
-            formatted_line = f"{question:<12} {question_match_percentage:>6.2f}% ({matches:>2}/{total_comparisons:<2}) | {yes_to_no:>2}/{no_to_yes:<2}"
+    for q in sorted(question_stats.keys(), key=custom_sort_key):
+        stats = question_stats[q]
+        bias = bias_stats[q]
+        perc = question_accuracy[q]
+        if perc is not None:
+            print(f"{q:<12} {perc:>6.2f}% ({stats['matches']:>2}/{stats['total']:<2}) | "
+                  f"{bias['yes_to_no']:>2}/{bias['no_to_yes']:<2}")
         else:
-            # If there are no valid comparisons for the question
-            formatted_line = f"{question:<12} No valid comparisons"
+            print(f"{q:<12} No valid comparisons")
 
-        # Print the formatted line for each question
-        print(formatted_line)
-
-
-    # Calculate and print global match percentage
-    if global_total_comparisons > 0:
-        global_match_percentage = (global_matches / global_total_comparisons) * 100
-        print("\nGlobal Match Percentage: ")
-        print(f"\033[1;31m{global_match_percentage:.2f}% ({global_matches}/{global_total_comparisons} matches) | Bias: {global_bias['yes_to_no']}/{global_bias['no_to_yes']} (yes/not)\033[0m")
+    # === Gesamtstatistik ===
+    if global_accuracy is not None:
+        print(f"\nGlobal Match Percentage: \033[1;31m{global_accuracy:.2f}% "
+              f"({global_matches}/{global_total_comparisons}) | Bias: "
+              f"{global_bias['yes_to_no']}/{global_bias['no_to_yes']} (yes/not)\033[0m")
     else:
         print("\nNo valid comparisons across all files.")
 
-    # Print list of failed papers
     if failed_paper:
-        print("\nFailed Papers (no valid comparisons):")
-        print(", ".join(failed_paper))
+        print("\nFailed Papers (no valid comparisons):", ", ".join(failed_paper))
     if missing_paper:
-        print("\nMissing Papers (no run):")
-        print(", ".join(missing_paper))
+        print("\nMissing Papers (no run):", ", ".join(missing_paper))
+
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')

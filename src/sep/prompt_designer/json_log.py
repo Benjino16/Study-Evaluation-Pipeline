@@ -1,9 +1,10 @@
 import json
 import os
 from datetime import datetime
+from sep.env_manager import ADJUSTED_PROMPT_FOLDER
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_PATH = os.path.join(BASE_DIR, "prompt_designer_log.json")
+LOG_PATH = os.path.join(BASE_DIR + ADJUSTED_PROMPT_FOLDER, "prompt_designer_log.json")
 
 
 def init_log(init_data: dict):

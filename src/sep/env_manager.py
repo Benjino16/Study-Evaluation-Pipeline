@@ -29,10 +29,12 @@ def config(key):
 # VARIABLES FROM CONFIG
 PROMPT_PATH = config("prompt_file_path")
 GPT_UPLOADED_FILES = config("uploaded_gpt_files")
+BASIC_PROMPT_PATH = config("basic_prompt_file_path")
 
 PDF_FOLDER = config("pdf_folder")
 RESULT_FOLDER = config("result_folder")
 CSV_FOLDER = config("csv_folder")
+ADJUSTED_PROMPT_FOLDER = config("adjusted_prompts")
 DEFAULT_CSV = config("standard_csv_responses")
 DEFAULT_CSV_COMBINED = config("standard_csv_responses_7abc_combined")
 

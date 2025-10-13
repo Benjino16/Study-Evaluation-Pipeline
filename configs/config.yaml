@@ -3,6 +3,7 @@
 #Static Resources
 prompt_file_path: resources/prompts.json
 uploaded_gpt_files: resources/uploaded_gpt_files.json
+basic_prompt_file_path: D:\dev\github\Study-Evaluation-Pipeline\resources\base_prompt.json
 
 #Default Inputs
 pdf_folder: data/input/pdfs/main/
@@ -11,6 +12,7 @@ standard_csv_responses_7abc_combined: resources/csv/correct_answers_combined.CSV
 
 #Output Paths
 result_folder: data/output/runs/main/
+adjusted_prompts: data/output/prompts/main/
 csv_folder: data/output/csvs/
 
 
