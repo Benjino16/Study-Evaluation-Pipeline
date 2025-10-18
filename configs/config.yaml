@@ -4,6 +4,7 @@
 prompt_file_path: resources/prompts.json
 uploaded_gpt_files: resources/uploaded_gpt_files.json
 basic_prompt_file_path: D:\dev\github\Study-Evaluation-Pipeline\resources\base_prompt.json
+prompt_design_prompt_path: D:\dev\github\Study-Evaluation-Pipeline\resources\prompt_designer.json
 
 #Default Inputs
 pdf_folder: data/input/pdfs/main/

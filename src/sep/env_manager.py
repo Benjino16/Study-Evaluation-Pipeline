@@ -30,6 +30,7 @@ def config(key):
 PROMPT_PATH = config("prompt_file_path")
 GPT_UPLOADED_FILES = config("uploaded_gpt_files")
 BASIC_PROMPT_PATH = config("basic_prompt_file_path")
+PROMPT_DESIGN_PROMPT_PATH = config("prompt_design_prompt_path")
 
 PDF_FOLDER = config("pdf_folder")
 RESULT_FOLDER = config("result_folder")
