@@ -7,13 +7,13 @@ from sep.process_paper import process_paper
 from sep.utils.load_json import load_json
 from sep.prompt_designer.json_log import init_log, update_log
 from sep.evaluation.compare_answers import compare_data
-import random
 
-def run_prompt_designer(base_prompt_json: str, loop: int, papers: list[str], model: str, temp: float,  csv: str):
+def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, papers: list[str], model: str, temp: float,  csv: str):
     prompt_design_prompt = load_json(base_prompt_json)["prompt"]
     current_prompt = "base prompt"
     paper = _get_paper_with_index(papers, 0)
-    current_accuracy = _evaluate_prompt(current_prompt, paper, csv)
+    papers_to_test = _get_number_of_papers(papers, 0, test_paper)
+    current_accuracy = _evaluate_prompt(current_prompt, papers_to_test, csv)
 
     init_log({
         "prompt_design_prompt": prompt_design_prompt,
@@ -26,7 +26,9 @@ def run_prompt_designer(base_prompt_json: str, loop: int, papers: list[str], mod
     for i in range(loop):
         paper = _get_paper_with_index(papers, i)
         adj_prompt = adjust_prompt(current_prompt, paper, model, temp)
-        accuracy = _evaluate_prompt(adj_prompt, paper, csv)
+
+        papers_to_test = _get_number_of_papers(papers, i + 1, test_paper)
+        accuracy = _evaluate_prompt(adj_prompt, papers_to_test, csv)
 
         update_log({
             "input_prompt": current_prompt,
@@ -46,43 +48,58 @@ def _get_paper_with_index(papers: list[str], index: int) -> str:
     return papers[index % len(papers)]
 
 
-def _get_random_papers(papers: list[str], n: int = 10) -> list[str]:
-    """Gibt n zufällige Paper aus der Liste zurück (ohne Wiederholungen)."""
+def _get_number_of_papers(papers: list[str], index: int, n: int) -> list[str]:
+    """Gibt die nächsten n Paper ab dem gegebenen Index aus der Liste zurück (zyklisch, ohne Wiederholungen)."""
     if not papers:
-        raise ValueError("Die Liste 'papers' ist leer.")
-    if n > len(papers):
-        n = len(papers)  # Nicht mehr als vorhanden
+        return []
 
-    return random.sample(papers, n)
+    # Liste rotieren und n Elemente zurückgeben
+    start = index % len(papers)
+    selected = papers[start:] + papers[:start]  # zyklische Reihenfolge
+    return selected[:n]
 
-def _evaluate_prompt(prompt: str, paper: str, csv: str) -> float:
+def _evaluate_prompt(prompt: str, papers_to_test: list[str], csv: str) -> float:
     """Test the prompt using all papers and return the accuracy."""
 
-    raw_answer, save_folder = process_paper(
-        prompt=prompt,
-        model="gemini-2.5-pro",
-        file_path=paper,
-    )
+    save_folder = None
 
+    #run the prompt on all papers
+    for paper in papers_to_test:
+        same_run = True
+        if save_folder is None: #makes sure to start with a new run
+            same_run = False
+
+        raw_answer, saved_at = process_paper(
+            prompt=prompt,
+            model="gemini-2.5-pro",
+            file_path=paper,
+            same_run=same_run,
+        )
+        save_folder = saved_at
+
+    #evaluate the results
     data = load_saved_jsons(save_folder + "*.json")
     compared_data = compare_data(data, csv)
     accuracy = compared_data.get('global_accuracy')
-    print(f"Prompt: {prompt}\nPaper: {paper}\nAccuracy: {accuracy}")
+
+    print(f"Tested current Prompt; \nAccuracy: {accuracy}")
+    print(f"Tested with the following papers: {papers_to_test}")
     if accuracy is None:
         accuracy = 0.0
-        print(f"⚠️  No valid comparisons for {paper}")
+        print(f"⚠️  No valid comparisons for current prompt")
     return accuracy
 
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (e.g., gpt or gemini).')
 
-    parser.add_argument('--model', required=False, help='Model to use (e.g., gpt-4o, gemini-3).')
-    parser.add_argument('--base', required=False, help='Path to the base/default prompt.')
-    parser.add_argument('--files', required=True, nargs='+', help='Files or patterns to process (supports globbing).')
-    parser.add_argument('--loops', type=int, default=5, help='Number of loops to run.')
+    parser.add_argument('--model', '-m', required=False, help='Model to use (e.g., gpt-4o, gemini-3).')
+    parser.add_argument('--base', '-b', required=False, help='Path to the base/default prompt.')
+    parser.add_argument('--files', '-f', required=True, nargs='+', help='Files or patterns to process (supports globbing).')
+    parser.add_argument('--loops', '-l', type=int, default=5, help='Number of loops to run.')
+    parser.add_argument('--test_papers', type=int, default=5, help='Number of papers to test after each adjustment.')
     parser.add_argument('--delay', type=int, default=15, help='Delay time in seconds between processing files.')
-    parser.add_argument('--temp', type=float, default=1.0, help='The temperature setting for model randomness.')
+    parser.add_argument('--temp', '-t', type=float, default=1.0, help='The temperature setting for model randomness.')
     parser.add_argument('--pdf_reader', action='store_true', help='Uses a local PDF reader to extract content as context for the model.')
     parser.add_argument('--csv', required=False, help='Path of the correct_answer.csv')
 
@@ -91,7 +108,7 @@ def main():
     base_prompt = args.base or BASIC_PROMPT_PATH
     csv = args.csv or DEFAULT_CSV
 
-    run_prompt_designer(base_prompt, args.loops, args.files, model, args.temp, csv)
+    run_prompt_designer(base_prompt, args.loops, args.test_papers, args.files, model, args.temp, csv)
 
 if __name__ == "__main__":
     main()

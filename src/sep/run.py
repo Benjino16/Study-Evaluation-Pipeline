@@ -2,8 +2,8 @@
 This script provides a command-line interface for processing PDF files with a specified model.
 """
 
-from sep.env_manager import PDF_FOLDER
-from sep.prompt_manager import getPromptsLength, getPrompt
+from sep.env_manager import PDF_FOLDER, PROMPT_PATH
+from sep.prompt_manager import getPrompt
 from sep.process_paper import process_paper
 
 import argparse
@@ -28,7 +28,7 @@ def display_overview(model: str, files_to_process, delay: int, process_all: bool
     if process_all:
         time_calculation = (delay + 5) * len(files_to_process)
     else:
-        time_calculation = (delay + 5) * len(files_to_process) * getPromptsLength()
+        time_calculation = (delay + 5) * len(files_to_process)
 
     formatted_time = str(datetime.timedelta(seconds=time_calculation))
 
@@ -72,11 +72,13 @@ def main():
     parser.add_argument('--temp', type=float, default=1.0, help='The temperature setting for model randomness.')
     parser.add_argument('--single_process', action='store_true', help='Process all prompts in splitted request if set. If --pdf_reader is enabled, it processes each page separately.')
     parser.add_argument('--pdf_reader', action='store_true', help='Uses a local PDF reader to extract content as context for the model.')
+    parser.add_argument('--prompt', required=False, help='Provide the path to a custom prompt.')
 
     args = parser.parse_args()
 
     pdf_path = args.files or [PDF_FOLDER + "*.pdf"]
-    
+    prompt_path = args.prompt or PROMPT_PATH
+
     files_to_process = []
     for file_pattern in pdf_path:
         files_to_process.extend(glob.glob(file_pattern))
@@ -94,7 +96,8 @@ def main():
     failed_count = 0
     errors = []
 
-    full_prompt = getPrompt()
+    full_prompt = getPrompt(prompt_path)
+
     if not full_prompt:
         raise ValueError("Failed to load prompt.")
 
@@ -104,7 +107,7 @@ def main():
         last_output = None
 
         try:
-            last_output, save_folder = process_paper(full_prompt, args.model, file_path, args.delay, args.temp, args.single_process, args.pdf_reader)
+            last_output, save_folder = process_paper(full_prompt, args.model, file_path, args.delay, args.temp, args.single_process, args.pdf_reader, same_run=True)
         except Exception as e:
             error_message = f"Error processing {file_path}:\n{traceback.format_exc()}"
             errors.append(error_message)

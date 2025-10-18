@@ -254,15 +254,15 @@ def print_result(result):
         match = re.match(r"(\d+)([a-zA-Z]*)", q)
         return (int(match.group(1)), match.group(2)) if match else (float('inf'), q)
 
-    for q in sorted(question_stats.keys(), key=custom_sort_key):
-        stats = question_stats[q]
-        bias = bias_stats[q]
-        perc = question_accuracy[q]
-        if perc is not None:
-            print(f"{q:<12} {perc:>6.2f}% ({stats['matches']:>2}/{stats['total']:<2}) | "
-                  f"{bias['yes_to_no']:>2}/{bias['no_to_yes']:<2}")
-        else:
-            print(f"{q:<12} No valid comparisons")
+    # for q in sorted(question_stats.keys(), key=custom_sort_key):
+    #     stats = question_stats[q]
+    #     bias = bias_stats[q]
+    #     perc = question_accuracy[q]
+    #     if perc is not None:
+    #         print(f"{q:<12} {perc:>6.2f}% ({stats['matches']:>2}/{stats['total']:<2}) | "
+    #               f"{bias['yes_to_no']:>2}/{bias['no_to_yes']:<2}")
+    #     else:
+    #         print(f"{q:<12} No valid comparisons")
 
     # === Gesamtstatistik ===
     if global_accuracy is not None:

@@ -14,11 +14,19 @@ import datetime
 # Supported Models
 VALID_MODELS = load_valid_models()
 
+SAVING_PATH = None
 
-def process_paper(prompt: str, model: str, file_path: str, delay = 15, temp = 1.0, single_process = False, pdf_reader = False):
+
+def process_paper(prompt: str, model: str, file_path: str, delay = 15, temp = 1.0, single_process = False, pdf_reader = False, same_run = False):
     """
     Processes a PDF file using a specified model and prompt.
     """
+    global SAVING_PATH
+    if not same_run or SAVING_PATH is None:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        save_folder = RESULT_FOLDER + f"{model}-temp{temp}-{timestamp}/"
+        SAVING_PATH = save_folder
+
 
     if not os.path.isfile(file_path):
         error_message = f"{file_path}, not a valid file."
@@ -28,8 +36,7 @@ def process_paper(prompt: str, model: str, file_path: str, delay = 15, temp = 1.
         raise ValueError(
             f"Error: Invalid model '{model}' specified. Supported models are: {', '.join(VALID_MODELS)}")
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    save_folder = RESULT_FOLDER + f"{model}-temp{temp}-{timestamp}/"
+
 
     if pdf_reader:
         pdf_reader_version = get_pdf_reader_version()
@@ -55,6 +62,6 @@ def process_paper(prompt: str, model: str, file_path: str, delay = 15, temp = 1.
         pdf_reader_version=pdf_reader_version,
         process_mode=process_mode,
         prompt=prompt,
-        save_folder=save_folder)
+        save_folder=SAVING_PATH)
 
-    return last_output, save_folder
+    return last_output, SAVING_PATH
