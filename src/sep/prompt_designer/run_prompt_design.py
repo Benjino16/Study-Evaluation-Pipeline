@@ -41,7 +41,7 @@ def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, paper
     prompt_design_prompt = PROMPT_DESIGN_PROMPT
     current_prompt = base_prompt
     papers_to_test = _get_number_of_papers(papers, 0, test_paper)
-    current_accuracy = _evaluate_prompt(current_prompt, papers_to_test, csv, model)
+    current_accuracy = _evaluate_prompt(current_prompt, papers_to_test, csv, model, delay)
 
     init_log({
         "prompt_design_prompt": prompt_design_prompt,
@@ -56,7 +56,7 @@ def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, paper
         adj_prompt = adjust_prompt(current_prompt, paper, model, temp)
 
         papers_to_test = _get_number_of_papers(papers, i + 1, test_paper)
-        accuracy = _evaluate_prompt(adj_prompt, papers_to_test, csv, model)
+        accuracy = _evaluate_prompt(adj_prompt, papers_to_test, csv, model, delay)
 
         update_log({
             "input_prompt": current_prompt,

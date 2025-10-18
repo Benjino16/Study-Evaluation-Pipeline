@@ -4,8 +4,8 @@ import sys
 import re
 from collections import defaultdict
 from sep.evaluation.load_saved_json import load_saved_jsons
-from sep.utils.parse_csv_answers import clean_study_number
-from sep.utils.parse_csv_answers import parse_json_answer
+from sep.evaluation.parse_csv_answers import clean_study_number
+from sep.evaluation.parse_csv_answers import parse_json_answer
 from collections import defaultdict
 import re
 from sep.env_manager import DEFAULT_CSV
