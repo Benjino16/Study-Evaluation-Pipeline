@@ -1,21 +1,22 @@
 import pytest
-from evaluation import parse_json_answer, clean_study_number, parse_csv_string_to_json
+from unittest.mock import patch
+from sep.evaluation import parse_csv_answers as ca
 
 def test_parse_json_answer():
-    assert parse_json_answer("yes") == '1'
-    assert parse_json_answer("Yes") == '1'
-    assert parse_json_answer("1") == '1'
-    assert parse_json_answer(1) == '1'
-    assert parse_json_answer("no") == '0'
-    assert parse_json_answer("No") == '0'
-    assert parse_json_answer("0") == '0'
-    assert parse_json_answer(0) == '0'
+    assert ca.parse_json_answer("yes") == '1'
+    assert ca.parse_json_answer("Yes") == '1'
+    assert ca.parse_json_answer("1") == '1'
+    assert ca.parse_json_answer(1) == '1'
+    assert ca.parse_json_answer("no") == '0'
+    assert ca.parse_json_answer("No") == '0'
+    assert ca.parse_json_answer("0") == '0'
+    assert ca.parse_json_answer(0) == '0'
 
 def test_clean_study_number():
-    assert clean_study_number("1234.pdf") == "1234"
-    assert clean_study_number("1234") == "1234"
-    assert clean_study_number("0034") == "34"
-    assert clean_study_number("0034.pdf") == "34"
+    assert ca.clean_study_number("1234.pdf") == "1234"
+    assert ca.clean_study_number("1234") == "1234"
+    assert ca.clean_study_number("0034") == "34"
+    assert ca.clean_study_number("0034.pdf") == "34"
 
 def test_parse_csv_to_json_without_combination():
     csv_string = (
@@ -33,7 +34,7 @@ def test_parse_csv_to_json_without_combination():
         "12;yes;answer to question 12"
     )
 
-    result = parse_csv_string_to_json(csv_string, combine_7abc=False)
+    result = ca.parse_csv_string_to_json(csv_string, combine_7abc=False)
 
     q1 = next((item for item in result if item["number"] == "1"), None)
     assert q1["answer"] == "yes"
@@ -51,7 +52,7 @@ def test_parse_csv_to_json_with_combination():
         "7c;yes;quote 7c"
     )
 
-    result = parse_csv_string_to_json(csv_string, combine_7abc=True)
+    result = ca.parse_csv_string_to_json(csv_string, combine_7abc=True)
 
     numbers = [item["number"] for item in result]
     assert "7b" not in numbers

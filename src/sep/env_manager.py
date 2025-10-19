@@ -1,11 +1,14 @@
 import os
 import yaml
 from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
 
 """The environment manager takes care of the correct import of the env variables and the loading of config.yaml."""
 
-dotenv_path = find_dotenv('.env')
-config_path = "configs/config.yaml"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
+dotenv_path = find_dotenv(PROJECT_ROOT / '.env')
+config_path = PROJECT_ROOT / 'configs' / 'config.yaml'
 load_dotenv(dotenv_path)
 
 def config(key):
@@ -26,10 +29,13 @@ def config(key):
 # VARIABLES FROM CONFIG
 PROMPT_PATH = config("prompt_file_path")
 GPT_UPLOADED_FILES = config("uploaded_gpt_files")
+BASIC_PROMPT_PATH = config("basic_prompt_file_path")
+PROMPT_DESIGN_PROMPT_PATH = config("prompt_design_prompt_path")
 
 PDF_FOLDER = config("pdf_folder")
 RESULT_FOLDER = config("result_folder")
 CSV_FOLDER = config("csv_folder")
+ADJUSTED_PROMPT_FOLDER = config("adjusted_prompts")
 DEFAULT_CSV = config("standard_csv_responses")
 DEFAULT_CSV_COMBINED = config("standard_csv_responses_7abc_combined")
 

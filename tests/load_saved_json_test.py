@@ -1,15 +1,17 @@
-from load_saved_json import load_json, load_saved_jsons
+import pytest
+from unittest.mock import patch
+from sep.evaluation import load_saved_json
 
 def test_load_json_version_1():
-    result_json_data = load_json("tests/test_data/test_results/raw-0005-20250115-130435.json")
+    result_json_data = load_saved_json.load_json("tests/test_data/test_results/raw-0005-20250115-130435.json")
     check_json_data(result_json_data, 1)
 
 def test_load_json_version_2():
-    result_json_data = load_json("tests/test_data/test_results/raw-0005-20250508-135152.json")
+    result_json_data = load_saved_json.load_json("tests/test_data/test_results/raw-0005-20250508-135152.json")
     check_json_data(result_json_data, 2)
 
 def test_load_jsons():
-    result_json_data = load_saved_jsons("tests/test_data/test_results/*.json")
+    result_json_data = load_saved_json.load_saved_jsons("tests/test_data/test_results/*.json")
 
     check_json_data(result_json_data[0], 1)
     check_json_data(result_json_data[1], 2)

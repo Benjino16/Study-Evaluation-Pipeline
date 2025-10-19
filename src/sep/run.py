@@ -1,25 +1,17 @@
 """
-This script manages the batch processing of PDF or text files using different language models (e.g., GPT, Gemini).
-It supports reading from local PDFs, sending data to a model via API requests, and saving raw model responses.
-Additional features include live status updates, error logging, and configurable processing modes via command-line arguments.
+This script provides a command-line interface for processing PDF files with a specified model.
 """
 
-from sep.env_manager import load_valid_models, PDF_FOLDER, RESULT_FOLDER
-from sep.prompt_manager import getPromptsLength
-from sep.api_request.request_manager import run_request
-from sep.evaluation.save_raw_data import save_raw_data_as_json
-from sep.services.pdf_reader import get_pdf_reader_version
+from sep.env_manager import PDF_FOLDER, PROMPT_PATH
+from sep.prompt_manager import getPrompt
+from sep.process_paper import process_paper
 
 import argparse
 import glob
 import os
 import time
-import sys
 import datetime
 import traceback
-
-# Supported Models
-VALID_MODELS = load_valid_models()
 
 def clear_console():
     """
@@ -36,7 +28,7 @@ def display_overview(model: str, files_to_process, delay: int, process_all: bool
     if process_all:
         time_calculation = (delay + 5) * len(files_to_process)
     else:
-        time_calculation = (delay + 5) * len(files_to_process) * getPromptsLength()
+        time_calculation = (delay + 5) * len(files_to_process)
 
     formatted_time = str(datetime.timedelta(seconds=time_calculation))
 
@@ -80,34 +72,18 @@ def main():
     parser.add_argument('--temp', type=float, default=1.0, help='The temperature setting for model randomness.')
     parser.add_argument('--single_process', action='store_true', help='Process all prompts in splitted request if set. If --pdf_reader is enabled, it processes each page separately.')
     parser.add_argument('--pdf_reader', action='store_true', help='Uses a local PDF reader to extract content as context for the model.')
+    parser.add_argument('--prompt', required=False, help='Provide the path to a custom prompt.')
 
     args = parser.parse_args()
 
-    if args.model not in VALID_MODELS:
-        raise ValueError(f"Error: Invalid model '{args.model}' specified. Supported models are: {', '.join(VALID_MODELS)}")
-    
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    save_folder = RESULT_FOLDER + f"{args.model}-temp{args.temp}-{timestamp}/"
-
     pdf_path = args.files or [PDF_FOLDER + "*.pdf"]
-    
+    prompt_path = args.prompt or PROMPT_PATH
+
     files_to_process = []
     for file_pattern in pdf_path:
         files_to_process.extend(glob.glob(file_pattern))
 
     files_to_process = list(set(files_to_process))  # Remove duplicate files
-
-    # Get PDF reader version if necessary
-    if args.pdf_reader:
-        pdf_reader_version = get_pdf_reader_version()
-    else:
-        pdf_reader_version = '-'
-
-    # Determine processing mode
-    if args.single_process:
-        process_mode = "process full pdf with prompt-split requests"
-    else:
-        process_mode = "process full pdf in single request"
 
     # Show processing overview
     display_overview(args.model, files_to_process, args.delay, not args.single_process, args.temp)
@@ -120,35 +96,18 @@ def main():
     failed_count = 0
     errors = []
 
+    full_prompt = getPrompt(prompt_path)
+
+    if not full_prompt:
+        raise ValueError("Failed to load prompt.")
+
     # Process each file
     for file_path in files_to_process:
         processed_count += 1
         last_output = None
-        
-        if not os.path.isfile(file_path):
-            error_message = f"Skipping {file_path}, not a valid file."
-            errors.append(error_message)
-            failed_count += 1
-            display_status(args.model, os.path.basename(file_path), 
-                           f"{processed_count}/{total_files}", failed_count, errors, last_output)
-            continue
+
         try:
-            last_output, prompt = run_request(file_path, args.model, not args.single_process, args.pdf_reader, args.delay, args.temp)
-                
-            if last_output is None:
-                raise Exception(f"Skipping evaluation for {file_path} due to processing error.")
-
-            save_raw_data_as_json(
-                raw_data=last_output, 
-                pdf_name=os.path.basename(file_path), 
-                model_name=args.model,
-                temp=args.temp,
-                pdf_reader=args.pdf_reader,
-                pdf_reader_version=pdf_reader_version,
-                process_mode=process_mode,
-                prompt=prompt,
-                save_folder=save_folder)
-
+            last_output, save_folder = process_paper(full_prompt, args.model, file_path, args.delay, args.temp, args.single_process, args.pdf_reader, same_run=True)
         except Exception as e:
             error_message = f"Error processing {file_path}:\n{traceback.format_exc()}"
             errors.append(error_message)
