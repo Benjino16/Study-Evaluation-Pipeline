@@ -6,14 +6,13 @@ from sep.evaluation.load_saved_json import load_saved_jsons
 from sep.prompt_designer.adjust_prompt import adjust_prompt, PROMPT_DESIGN_PROMPT
 from sep.process_paper import process_paper
 from sep.prompt_manager import getPrompt
-from sep.utils.load_json import load_json
 from sep.prompt_designer.json_log import init_log, update_log
 from sep.evaluation.compare_answers import compare_data
 from sep.logger import setup_logger
 
 log = setup_logger(__name__)
 
-def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, papers: list[str], model: str, temp: float,  csv: str, delay: int = 5):
+def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, papers: list[str], model: str, temp: float,  csv: str, delay: int = 5, testing: bool = True):
     """
     Executes a prompt design loop that iteratively adjusts a base prompt using given
     parameters to improve accuracy based on test papers.
@@ -45,7 +44,12 @@ def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, paper
     prompt_design_prompt = PROMPT_DESIGN_PROMPT
     current_prompt = base_prompt
     papers_to_test = _get_number_of_papers(papers, 0, test_paper)
-    current_accuracy = _evaluate_prompt(current_prompt, papers_to_test, csv, model, delay)
+
+
+    if testing:
+        current_accuracy = _evaluate_prompt(current_prompt, papers_to_test, csv, model, delay)
+    else:
+        current_accuracy = -1.0
 
     init_log({
         "prompt_design_prompt": prompt_design_prompt,
@@ -60,7 +64,11 @@ def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, paper
         adj_prompt = adjust_prompt(current_prompt, paper, model, temp)
 
         papers_to_test = _get_number_of_papers(papers, i + 1, test_paper)
-        accuracy = _evaluate_prompt(adj_prompt, papers_to_test, csv, model, delay)
+
+        if testing:
+            accuracy = _evaluate_prompt(adj_prompt, papers_to_test, csv, model, delay)
+        else:
+            accuracy = -1.0
 
         update_log({
             "input_prompt": current_prompt,
@@ -70,7 +78,7 @@ def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, paper
             "accuracy": accuracy,
         })
 
-        if accuracy >= current_accuracy:
+        if accuracy >= current_accuracy or not testing:
             current_prompt = adj_prompt
             current_accuracy = accuracy
 
@@ -140,13 +148,21 @@ def main():
     parser.add_argument('--temp', '-t', type=float, default=1.0, help='The temperature setting for model randomness.')
     parser.add_argument('--pdf_reader', action='store_true', help='Uses a local PDF reader to extract content as context for the model.')
     parser.add_argument('--csv', required=False, help='Path of the correct_answer.csv')
+    parser.add_argument('--no-testing', '-n', action='store_true', help='Disables the testing between adjustments.')
 
     args = parser.parse_args()
     model = args.model or "gemini-2.5-pro"
     base_prompt = args.base or BASIC_PROMPT_PATH
     csv = args.csv or DEFAULT_CSV
-
-    run_prompt_designer(base_prompt, args.loops, args.test_papers, args.files, model, args.temp, csv, args.delay)
+    run_prompt_designer(
+        base_prompt_json=base_prompt,
+        loop=args.loops,
+        test_paper=args.test_papers,
+        papers=args.files,
+        model=model, temp=args.temp,
+        csv=csv,
+        delay=args.delay,
+        testing=not args.no_testing)
 
 if __name__ == "__main__":
     main()
