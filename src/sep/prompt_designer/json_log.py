@@ -2,6 +2,9 @@ import json
 import os
 from datetime import datetime
 from sep.env_manager import ADJUSTED_PROMPT_FOLDER
+from sep.logger import setup_logger
+
+log = setup_logger(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_PATH = os.path.join(BASE_DIR + ADJUSTED_PROMPT_FOLDER, "prompt_designer_log.json")
@@ -12,6 +15,7 @@ def init_log(init_data: dict):
     Creates a JSON log file with initial data.
     If the file already exists, it will be overwritten.
     """
+
     path = LOG_PATH
     data = {
         "date": datetime.now().isoformat(),
@@ -26,7 +30,8 @@ def init_log(init_data: dict):
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
-    print(f"[LOG INIT] Created log at: {path}")
+
+    log.info(f"[LOG INIT] Creating log at: {LOG_PATH}")
 
 
 def update_log(run_data: dict):
@@ -38,7 +43,7 @@ def update_log(run_data: dict):
         raise FileNotFoundError(f"Log file not found at: {path}")
 
     with open(path, "r", encoding="utf-8") as f:
-        log = json.load(f)
+        json_log = json.load(f)
 
     entry = {
         "date": datetime.now().isoformat(),
@@ -49,8 +54,8 @@ def update_log(run_data: dict):
         "accuracy": run_data.get("accuracy", 0.0),
     }
 
-    log["runs"].append(entry)
+    json_log["runs"].append(entry)
 
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(log, f, indent=4)
-    print(f"[LOG UPDATE] Added new run entry at: {path}")
+        json.dump(json_log, f, indent=4)
+    log.info(f"[LOG UPDATE] Added new entry to log at: {path}")
