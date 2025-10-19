@@ -35,6 +35,9 @@ def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, paper
         raise ValueError("Test paper parameter must be at least 1.")
     if test_paper > len(papers):
         log.warning("Your are trying to test more papers than available. If you want to test all papers, you can ignore this warning.")
+    if not testing and test_paper > 0:
+        test_paper = 0
+        log.warning("You have testing disabled, so test paper parameter will be set to 0.")
 
     try:
         base_prompt = getPrompt(base_prompt_json)
@@ -92,9 +95,18 @@ def _get_paper_with_index(papers: list[str], index: int) -> str:
 
 
 def _get_number_of_papers(papers: list[str], index: int, n: int) -> list[str]:
-    """Gibt die nächsten n Paper ab dem gegebenen Index aus der Liste zurück (zyklisch, ohne Wiederholungen)."""
-    if not papers:
+    """Return the next n papers starting from the given index (cyclic, without duplicates)."""
+    if not papers or n <= 0:
         return []
+
+    result = []
+    total = len(papers)
+
+    for i in range(n):
+        result.append(papers[(index + i) % total])
+
+    return result
+
 
     # Liste rotieren und n Elemente zurückgeben
     start = index % len(papers)

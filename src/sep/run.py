@@ -66,10 +66,10 @@ def main():
     Parses command-line arguments, validates input, manages processing flow, and saves results.
     """
     parser = argparse.ArgumentParser(description='Process files with specified model (e.g., gpt or gemini).')
-    parser.add_argument('--model', required=True, help='Model to use (e.g., gpt-4o, gemini-3).')
-    parser.add_argument('--files', nargs='+', help='Files or patterns to process (supports globbing).')
-    parser.add_argument('--delay', type=int, default=15, help='Delay time in seconds between processing files.')
-    parser.add_argument('--temp', type=float, default=1.0, help='The temperature setting for model randomness.')
+    parser.add_argument('--model', '-m', required=True, help='Model to use (e.g., gpt-4o, gemini-3).')
+    parser.add_argument('--files', '-f', nargs='+', help='Files or patterns to process (supports globbing).')
+    parser.add_argument('--delay', '-d', type=int, default=15, help='Delay time in seconds between processing files.')
+    parser.add_argument('--temp', '-t', type=float, default=1.0, help='The temperature setting for model randomness.')
     parser.add_argument('--single_process', action='store_true', help='Process all prompts in splitted request if set. If --pdf_reader is enabled, it processes each page separately.')
     parser.add_argument('--pdf_reader', action='store_true', help='Uses a local PDF reader to extract content as context for the model.')
     parser.add_argument('--prompt', required=False, help='Provide the path to a custom prompt.')
