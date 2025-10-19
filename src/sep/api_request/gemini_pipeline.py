@@ -43,9 +43,19 @@ def process_file_with_gemini(prompt: str, filename: str, model: str, temperature
             "file": file
         })
 
+    contents = [
+        {
+            "role": "user",
+            "parts": [
+                {"file_data": {"file_uri": file.uri}},
+                {"text": prompt},
+            ],
+        }
+    ]
+
     response = client.models.generate_content(
         model=model,
-        contents=[{"role": "user", "parts": [file, {"text": prompt}]}],
+        contents=contents,
         config={"temperature": temperature},
     )
     return response.text
