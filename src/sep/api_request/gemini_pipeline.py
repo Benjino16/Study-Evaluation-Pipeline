@@ -1,10 +1,11 @@
 import os
 from sep.env_manager import env
-import google.generativeai as genai
+from google import genai
 import logging
 
 logging.basicConfig(level=logging.INFO)
-genai.configure(api_key=env('API_GEMINI'))
+
+client = genai.Client(api_key=env('API_GEMINI'))
 
 # Global list to check for already uploaded pdfs
 uploaded_files = []
@@ -33,24 +34,29 @@ def process_file_with_gemini(prompt: str, filename: str, model: str, temperature
             break
     else:
         # Upload file if not present in the list
-        sample_file = genai.upload_file(path=filename, display_name="Gemini PDF FILE")
-        logging.info(f"Uploaded file '{sample_file.display_name}' as: {sample_file.uri}")
+        file  = client.files.upload(file=filename)
+        logging.info(f"Uploaded file '{file.display_name}' as: {file.uri}")
 
         # Add the file to the list
         uploaded_files.append({
             "name": file_key,
-            "file": sample_file
+            "file": file
         })
-        file = sample_file
 
-    # Define the model and generate the response
-    model = genai.GenerativeModel(model_name=model)
+    contents = [
+        {
+            "role": "user",
+            "parts": [
+                {"file_data": {"file_uri": file.uri}},
+                {"text": prompt},
+            ],
+        }
+    ]
 
-    response = model.generate_content(
-        [file, prompt],
-        generation_config=genai.types.GenerationConfig(
-            temperature=temperature,
-        )
+    response = client.models.generate_content(
+        model=model,
+        contents=contents,
+        config={"temperature": temperature},
     )
     return response.text
 
@@ -59,9 +65,9 @@ def test_gemini_pipeline():
     Tests the Gemini pipeline by making a test call and checking if it responds correctly.
     """
     try:
-        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
-        response = model.generate_content(
-            "This is a test call. Simply answer with the word test.",
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents=[{"role": "user", "parts": [{"text": "This is a test call. Simply answer with the word test."}]}]
         )
         return response.text != None
     except Exception as e:
