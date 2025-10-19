@@ -1,9 +1,9 @@
 import os
 from sep.env_manager import env
 from google import genai
-import logging
+from sep.logger import setup_logger
 
-logging.basicConfig(level=logging.INFO)
+log = setup_logger(__name__)
 
 client = genai.Client(api_key=env('API_GEMINI'))
 
@@ -29,13 +29,13 @@ def process_file_with_gemini(prompt: str, filename: str, model: str, temperature
     # Check if the PDF has already been uploaded
     for uploaded_file in uploaded_files:
         if uploaded_file["name"] == file_key:
-            logging.info(f"File '{file_key}' was already uploaded. Using the saved version instead.")
+            log.info(f"File '{file_key}' was already uploaded. Using the saved version instead.")
             file = uploaded_file["file"]
             break
     else:
         # Upload file if not present in the list
         file  = client.files.upload(file=filename)
-        logging.info(f"Uploaded file '{file.display_name}' as: {file.uri}")
+        log.info(f"Uploaded file '{file.display_name}' as: {file.uri}")
 
         # Add the file to the list
         uploaded_files.append({
@@ -71,7 +71,7 @@ def test_gemini_pipeline():
         )
         return response.text != None
     except Exception as e:
-        logging.exception("Exception while trying to test gemini api.")
+        log.exception("Exception while trying to test gemini api.")
         return False
     
 def get_gemini_model_name(model: str) -> str:
@@ -79,5 +79,5 @@ def get_gemini_model_name(model: str) -> str:
     Fetches the model information and returns the model name.
     (The real version is a TODO item)
     """
-    model_info = genai.get_model("models/" + model)
-    return model #TODO GET REAL MODEL VERSION
+    model_info = client.models.get(model=model)
+    return model_info.name #TODO GET REAL MODEL VERSION

@@ -5,9 +5,13 @@ from sep.env_manager import DEFAULT_CSV, BASIC_PROMPT_PATH
 from sep.evaluation.load_saved_json import load_saved_jsons
 from sep.prompt_designer.adjust_prompt import adjust_prompt, PROMPT_DESIGN_PROMPT
 from sep.process_paper import process_paper
+from sep.prompt_manager import getPrompt
 from sep.utils.load_json import load_json
 from sep.prompt_designer.json_log import init_log, update_log
 from sep.evaluation.compare_answers import compare_data
+from sep.logger import setup_logger
+
+log = setup_logger(__name__)
 
 def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, papers: list[str], model: str, temp: float,  csv: str, delay: int = 5):
     """
@@ -31,10 +35,10 @@ def run_prompt_designer(base_prompt_json: str, loop: int, test_paper: int, paper
     if test_paper < 1:
         raise ValueError("Test paper parameter must be at least 1.")
     if test_paper > len(papers):
-        print("Warning: Your are trying to test more papers than available. If you want to test all papers, you can ignore this warning.")
+        log.warning("Your are trying to test more papers than available. If you want to test all papers, you can ignore this warning.")
 
     try:
-        base_prompt = load_json(base_prompt_json)["prompt"]
+        base_prompt = getPrompt(base_prompt_json)
     except Exception as e:
         raise ValueError(f"Error loading base prompt: {e}")
 
@@ -116,11 +120,11 @@ def _evaluate_prompt(prompt: str, papers_to_test: list[str], csv: str, model: st
     compared_data = compare_data(data, csv)
     accuracy = compared_data.get('global_accuracy')
 
-    print(f"Tested current Prompt; \nAccuracy: {accuracy}")
-    print(f"Tested with the following papers: {papers_to_test}")
+    log.info(f"Tested current Prompt; \nAccuracy: {accuracy}")
+    log.info(f"Tested with the following papers: {papers_to_test}")
     if accuracy is None:
         accuracy = 0.0
-        print(f"⚠️  No valid comparisons for current prompt")
+        log.warning(f"⚠️  No valid comparisons for current prompt")
     return accuracy
 
 
