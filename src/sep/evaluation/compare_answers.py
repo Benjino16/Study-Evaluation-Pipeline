@@ -63,25 +63,37 @@ def merge_dataframes(correct, prediction):
     return df_merged
 
 
+import re
+import pandas as pd
 
-def combine_split_questions(df):
+
+def combine_split_questions_in_df(df, value_column: str):
     """
-    Kombiniert gesplittete Fragen (z. B. 7a, 7b, 7c) zu einer einzigen Frage 7.
-    Regel:
+    Kombiniert gesplittete Fragen (z. B. 7a, 7b, 7c) in einer DataFrame-Spalte zu einer Basisfrage (z. B. 7).
+
+    Parameter:
+        df : pd.DataFrame
+            Muss 'study_number', 'prompt_number' und die zu kombinierende Spalte enthalten.
+        value_column : str
+            Der Spaltenname, dessen Werte kombiniert werden sollen (z. B. 'answer' oder 'model_answer').
+
+    Regeln:
         - Wenn irgendeine Teilfrage 0 ist -> Gesamtfrage = 0
         - Nur wenn alle Teilfragen 1 sind -> Gesamtfrage = 1
-    Funktioniert für beliebige Fragebezeichner mit Buchstabenanhang.
     """
-    # Basisnummer extrahieren, z. B. "7a" -> "7"
-    df['base_prompt'] = df['prompt_number'].apply(lambda x: re.match(r'(\d+)', str(x)).group(1) if re.match(r'(\d+)', str(x)) else x)
+    # Sicherstellen, dass Spalte existiert
+    if value_column not in df.columns:
+        raise ValueError(f"Spalte '{value_column}' nicht im DataFrame gefunden.")
 
-    # Gruppieren nach Studie & Basisfrage
+    # Basisnummer extrahieren, z. B. "7a" → "7"
+    df['base_prompt'] = df['prompt_number'].apply(
+        lambda x: re.match(r'(\d+)', str(x)).group(1) if re.match(r'(\d+)', str(x)) else x
+    )
+
+    # Gruppieren nach Studie und Basisfrage
     agg_df = (
         df.groupby(['study_number', 'base_prompt'])
-        .agg({
-            'answer': lambda x: int(all(x.astype(int))),         # nur 1 wenn alle 1 sind
-            'model_answer': lambda x: int(all(x.astype(int)))    # dito für Modell
-        })
+        .agg({value_column: lambda x: int(all(x.astype(int)))})
         .reset_index()
         .rename(columns={'base_prompt': 'prompt_number'})
     )
@@ -97,10 +109,12 @@ def compare_data(data, csv: str, combine7abc: bool = False):
     prediction_df = convert_model_prediction_df(data)
     correct_answers_df = load_correct_answers(csv)
 
+    if combine7abc:
+        correct_answers_df = combine_split_questions_in_df(correct_answers_df, 'answer')
+        prediction_df = combine_split_questions_in_df(prediction_df, 'model_answer')
+
     df_merged = merge_dataframes(correct_answers_df, prediction_df)
 
-    if combine7abc:
-        df_merged = combine_split_questions(df_merged)
 
     y_true = df_merged['answer']
     y_pred = df_merged['model_answer']
