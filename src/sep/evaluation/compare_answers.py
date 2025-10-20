@@ -1,298 +1,109 @@
-import argparse
-import csv
-import sys
-import re
-from collections import defaultdict
-from sep.evaluation.load_saved_json import load_saved_jsons
+import pandas as pd
 from sep.evaluation.parse_csv_answers import clean_study_number
 from sep.evaluation.parse_csv_answers import parse_json_answer
-from collections import defaultdict
-import re
-from sep.env_manager import DEFAULT_CSV
-import logging
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
+import sep.logger
 
-"""This script can be used to evaluate saved responses from the AI models."""
+log = sep.logger.setup_logger(__name__)
 
+def load_correct_answers(csv_file):
+    """Load correct answers from the CSV file into a pandas DataFrame."""
+    df = pd.read_csv(csv_file, delimiter=';', dtype={'answer': str})
 
-logging.basicConfig(level=logging.INFO)
+    # clean study_number
+    df['study_number'] = df['study_number'].apply(clean_study_number)
 
-# Papers that should be in the run
-papers = [
-    "0005", "0013", "0019", "0031", "0054", "0094", "0098", "0100", "0110", "0124", "0125", "0129", "0172",
-    "0191", "0214", "0223", "0226", "0280", "0317", "0379", "0400", "0424", "0435", "0480", "0491", "0535",
-    "0541", "0646", "0665", "0705", "0714", "0732", "0760", "0819", "0827", "0837", "0887", "0891", "0935"
-]
+    #remove rows with NA
+    df = df.dropna(subset=['answer'])
 
-def load_correct_answers(csv_file, ignore_na: bool = False):
-    """Load correct answers from the CSV file into a dictionary."""
-    correct_answers = {}
-    with open(csv_file, newline='') as f:
-        reader = csv.DictReader(f, delimiter=';')
-        for row in reader:
-            study_number = clean_study_number(row['study_number'])
-            prompt_number = row['prompt_number']
-            answer = row['answer']
+    print(df)
+    return df
 
-            if ignore_na and answer == "NA":
-                continue
-            correct_answers[(study_number, prompt_number)] = answer
-    return correct_answers
+def convert_model_prediction_df(data):
+    """Convert the model prediction dictionary into a DataFrame."""
+    records = []
 
-def load_human_answers(csv_file, ignore_na: bool = False):
-    """Load human answers from the CSV file into a dictionary."""
-    correct_answers = {}
-    with open(csv_file, newline='') as f:
-        reader = csv.DictReader(f, delimiter=';')
-        for row in reader:
-            study_number = clean_study_number(row['study_number'])
-            prompt_number = row['prompt_number']
-            answer1 = row['run1']
-            answer2 = row['run2']
-
-            if ignore_na and (answer1 == "NA" or answer2 == "NA"):
-                continue
-            correct_answers[(study_number, prompt_number)] = answer1, answer2
-    return correct_answers
-
-def compare_answers(data, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper):
-    """Compare answers from the JSON file with the correct answers from the CSV and record bias."""
-
-    matches = 0
-    total_comparisons = 0
-
-    skipped_format = 0  # Counter for answers skipped due to invalid format
-    skipped_format_list = []
-
-    skipped_no_csv = 0  # Counter for valid format answers skipped due to no CSV entry
-
-    study_number = clean_study_number(data['PDF_Name'])  # Clean the JSON study number
-    valid_comparisons = False  # Track if any comparisons were made for this paper
-
-    for response in data['Prompts']:
-        prompt_number = str(response['number'])  # Convert prompt number to string for comparison
-        json_answer = parse_json_answer(response['answer'])
-
-        # Check if the answer in the JSON is valid (Yes/No)
-        if json_answer is None:
-            skipped_format += 1  # Invalid format
-            skipped_format_list.append(response)
-        else:
-            # Check if there is a corresponding correct answer in the CSV
-            if (study_number, prompt_number) not in correct_answers:
-                skipped_no_csv += 1  # Valid format, but missing CSV entry
-            else:
-                valid_comparisons = True  # Mark that this paper has at least one valid comparison
-                correct_answer = correct_answers[(study_number, prompt_number)]
-                
-                if json_answer == correct_answer:
-                    matches += 1
-                    question_stats[prompt_number]['matches'] += 1  # Increment question-level matches
-                else:
-                    # Record the bias direction (per question)
-                    if correct_answer == '1' and json_answer == '0':
-                        bias_stats[prompt_number]['yes_to_no'] += 1
-                        detailed_stats[prompt_number]['yes_to_no'].append(study_number)
-                        global_bias['yes_to_no'] += 1  # Increment global yes->no bias
-                    elif correct_answer == '0' and json_answer == '1':
-                        bias_stats[prompt_number]['no_to_yes'] += 1
-                        detailed_stats[prompt_number]['no_to_yes'].append(study_number)
-                        global_bias['no_to_yes'] += 1  # Increment global no->yes bias
-
-                question_stats[prompt_number]['total'] += 1  # Increment total for this question
-                total_comparisons += 1
-
-    # If no valid comparisons were made for the entire paper, mark it as failed
-    if not valid_comparisons:
-        failed_paper.append(study_number)
-
-    # Return the count of skipped invalid and missing CSV entries for tracking
-    return matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv
-
-def run_comparison(csv: str, filepath: str, combine7abc: bool, ignore_na: bool = False):
-    data = load_saved_jsons(filepath, combine7abc)
-    if not data:
-        raise ValueError(f"No files found for pattern: {filepath}")
-    return compare_data(data, csv, ignore_na)
-
-
-def compare_data(data, csv: str, ignore_na: bool = False):
-    """
-    Vergleicht die Daten aus einem Run mit den Antworten aus einer CSV-Datei.
-    Gibt alle berechneten Metriken inklusive Accuracy zurück.
-    """
-    csv_file = csv
-    correct_answers = load_correct_answers(csv_file, ignore_na)
-
-    required_files = []
-    required_files.extend(papers)
-
-    global_matches = 0
-    global_total_comparisons = 0
-    skipped_invalid_format = 0
-    skipped_list = []
-    skipped_no_answer_in_csv = 0
-    failed_paper = []
-
-    question_stats = defaultdict(lambda: {'matches': 0, 'total': 0})
-    bias_stats = defaultdict(lambda: {'yes_to_no': 0, 'no_to_yes': 0})
-    detailed_stats = defaultdict(lambda: {'yes_to_no': [], 'no_to_yes': []})
-    global_bias = {'yes_to_no': 0, 'no_to_yes': 0}
-
-    results = []
-
-    # === Hauptvergleich ===
     for entry in data:
-        matches, total_comparisons, skipped_format, skipped_format_list, skipped_no_csv = compare_answers(
-            entry, correct_answers, question_stats, bias_stats, global_bias, detailed_stats, failed_paper
-        )
+        pdf_name = entry.get('PDF_Name')
+        for response in entry.get('Prompts', []):
+            prompt_number = str(response.get('number'))
+            json_answer = parse_json_answer(response.get('answer'))
 
-        try:
-            required_files.remove(entry['PDF_Name'])
-        except Exception:
-            print(f"{entry['PDF_Name']} could not be removed from required_files. "
-                            f"If you are using a different paper set, ignore this warning.")
+            records.append({
+                "study_number": clean_study_number(pdf_name),
+                "prompt_number": prompt_number,
+                "model_answer": json_answer
+            })
 
-        skipped_invalid_format += skipped_format
-        skipped_list.extend([f"- File: {entry['PDF_Name']} {s}" for s in skipped_format_list])
-        skipped_no_answer_in_csv += skipped_no_csv
+    df = pd.DataFrame(records)
 
-        if total_comparisons > 0:
-            match_percentage = (matches / total_comparisons) * 100
-        else:
-            match_percentage = None
+    #remove rows with NA
+    df = df.dropna(subset=['model_answer'])
+    print(df)
+    return df
 
-        results.append({
-            'PDF_Name': entry['PDF_Name'],
-            'match_percentage': match_percentage,
-            'matches': matches,
-            'total_comparisons': total_comparisons
-        })
 
-        global_matches += matches
-        global_total_comparisons += total_comparisons
-
-    # === Sortieren nach Accuracy ===
-    sorted_results = sorted(
-        results,
-        key=lambda x: x['match_percentage'] if x['match_percentage'] is not None else -1,
-        reverse=True
+def merge_dataframes(correct, prediction):
+    """Merge two pandas DataFrames on the 'study_number' and 'prompt_number' columns."""
+    # merge dataframes
+    df_merged = pd.merge(
+        correct,
+        prediction,
+        on=['study_number', 'prompt_number'],
+        how='left',
+        suffixes=('_correct', '_pred')
     )
 
-    # === Globale Accuracy ===
-    if global_total_comparisons > 0:
-        global_accuracy = (global_matches / global_total_comparisons) * 100
-    else:
-        global_accuracy = None
 
-    # === Fragebasierte Accuracy ===
-    question_accuracy = {}
-    for q, stats in question_stats.items():
-        total = stats['total']
-        question_accuracy[q] = (stats['matches'] / total * 100) if total > 0 else None
+    df_merged = df_merged.dropna(subset=['answer', 'model_answer'])
 
-    # === Endergebnis vorbereiten ===
-    result = {
-        'pdf_stats': sorted_results,               # pro Datei
-        'question_stats': dict(question_stats),    # Rohdaten
-        'question_accuracy': question_accuracy,    # pro Frage in %
-        'bias_stats': dict(bias_stats),
-        'global_bias': global_bias,
-        'global_matches': global_matches,
-        'global_total_comparisons': global_total_comparisons,
-        'global_accuracy': global_accuracy,        # ← Wichtig: direkt nutzbar!
-        'skipped_no_answer_in_csv': skipped_no_answer_in_csv,
-        'skipped_list': skipped_list,
-        'skipped_invalid_format': skipped_invalid_format,
-        'failed_paper': failed_paper,
-        'missing_paper': required_files
+    log.warning(f"Merged dataframe dropped {len(df_merged)} NAs.")
+
+    return df_merged
+
+
+def compare_data(data, csv: str):
+    """
+    Vergleicht die Daten aus einem Run mit den Antworten aus einer CSV-Datei.
+    Gibt Gesamtmetriken und Genauigkeiten pro Frage & pro Paper zurück.
+    """
+    prediction_df = convert_model_prediction_df(data)
+    correct_answers_df = load_correct_answers(csv)
+
+    df_merged = merge_dataframes(correct_answers_df, prediction_df)
+
+    y_true = df_merged['answer']
+    y_pred = df_merged['model_answer']
+    y_true = y_true.astype(int)
+    y_pred = y_pred.astype(int)
+
+    # --- general metrics ---
+    results = {
+        "overall": {
+            "accuracy": accuracy_score(y_true, y_pred),
+            "precision": precision_score(y_true, y_pred, zero_division=0),
+            "recall": recall_score(y_true, y_pred, zero_division=0),
+            "f1": f1_score(y_true, y_pred, zero_division=0),
+            "n_samples": len(df_merged),
+        },
     }
 
-    return result
+    # --- accuracy per question ---
+    acc_by_question = (
+        df_merged.groupby('prompt_number')
+        .apply(lambda g: accuracy_score(g['answer'], g['model_answer']))
+        .to_dict()
+    )
+    results["per_question"] = acc_by_question
 
+    # --- accuracy per paper ---
+    acc_by_paper = (
+        df_merged.groupby('study_number')
+        .apply(lambda g: accuracy_score(g['answer'], g['model_answer']))
+        .to_dict()
+    )
+    results["per_paper"] = acc_by_paper
 
-def print_result(result):
-    """
-    Zeigt die Ergebnisse von compare_data() formatiert an.
-    Erwartet, dass alle Berechnungen bereits in result enthalten sind.
-    """
-    sorted_results = result['pdf_stats']
-    question_stats = result['question_stats']
-    question_accuracy = result['question_accuracy']
-    global_bias = result['global_bias']
-    bias_stats = result['bias_stats']
-    skipped_invalid_format = result['skipped_invalid_format']
-    skipped_no_answer_in_csv = result['skipped_no_answer_in_csv']
-    skipped_list = result['skipped_list']
-    failed_paper = result['failed_paper']
-    missing_paper = result['missing_paper']
-    global_accuracy = result['global_accuracy']
-    global_matches = result['global_matches']
-    global_total_comparisons = result['global_total_comparisons']
+    results["confusion_matrix"] = confusion_matrix(y_true, y_pred)
 
-    # === PDF-Ergebnisse ===
-    for r in sorted_results:
-        if r['match_percentage'] is not None:
-            print(f"File: {r['PDF_Name']} - Match Percentage: {r['match_percentage']:.2f}% "
-                  f"({r['matches']}/{r['total_comparisons']} matches)")
-        else:
-            print(f"File: {r['PDF_Name']} - No valid comparisons")
-
-    # === Fehlerstatistik ===
-    print(f"\nError in format:   {skipped_invalid_format}")
-    print(f"CSV entry missing: {skipped_no_answer_in_csv}")
-    if skipped_list:
-        print("Format Error List:")
-        print(*skipped_list, sep='\n')
-
-    # === Fragenstatistik ===
-    print("\nQuestion Stats:")
-    header = f"{'Question':<12} {'Match %':>8} {'Matches':<6} | {'Bias (yes/no)':<1}"
-    print(header)
-    print('-' * len(header))
-
-    def custom_sort_key(q):
-        match = re.match(r"(\d+)([a-zA-Z]*)", q)
-        return (int(match.group(1)), match.group(2)) if match else (float('inf'), q)
-
-    # for q in sorted(question_stats.keys(), key=custom_sort_key):
-    #     stats = question_stats[q]
-    #     bias = bias_stats[q]
-    #     perc = question_accuracy[q]
-    #     if perc is not None:
-    #         print(f"{q:<12} {perc:>6.2f}% ({stats['matches']:>2}/{stats['total']:<2}) | "
-    #               f"{bias['yes_to_no']:>2}/{bias['no_to_yes']:<2}")
-    #     else:
-    #         print(f"{q:<12} No valid comparisons")
-
-    # === Gesamtstatistik ===
-    if global_accuracy is not None:
-        print(f"\nGlobal Match Percentage: \033[1;31m{global_accuracy:.2f}% "
-              f"({global_matches}/{global_total_comparisons}) | Bias: "
-              f"{global_bias['yes_to_no']}/{global_bias['no_to_yes']} (yes/not)\033[0m")
-    else:
-        print("\nNo valid comparisons across all files.")
-
-    if failed_paper:
-        print("\nFailed Papers (no valid comparisons):", ", ".join(failed_paper))
-    if missing_paper:
-        print("\nMissing Papers (no run):", ", ".join(missing_paper))
-
-
-def main():
-    parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
-    parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
-    parser.add_argument('--csv', type=str, help='The csv that the results should be compared to.')
-    parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
-    parser.add_argument('--include_na', action='store_false', help='Ignores the NA answers, both of the model an the correct answers.')
-
-    args = parser.parse_args()
-
-    csv = args.csv or DEFAULT_CSV
-    ignore_na = args.include_na
-
-    result = run_comparison(csv, args.data, args.combine7abc, ignore_na)
-    print_result(result)
-
-
-if __name__ == '__main__':
-    main()
+    return results

@@ -1,5 +1,5 @@
 from sep.evaluation.load_saved_json import load_saved_jsons
-from sep.evaluation.compare_answers_pandas import compare_data
+from sep.evaluation.compare_answers import compare_data
 from sep.env_manager import DEFAULT_CSV
 import argparse
 import re
@@ -45,7 +45,6 @@ def main():
     parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
     parser.add_argument('--csv', type=str, help='The csv that the results should be compared to.')
     parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
-    parser.add_argument('--include_na', action='store_false', help='Ignores the NA answers, both of the model an the correct answers.')
 
     args = parser.parse_args()
 
