@@ -3,6 +3,7 @@ from sep.evaluation.parse_csv_answers import clean_study_number
 from sep.evaluation.parse_csv_answers import parse_json_answer
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score, matthews_corrcoef
 import sep.logger
+import re
 
 log = sep.logger.setup_logger(__name__)
 
@@ -62,7 +63,33 @@ def merge_dataframes(correct, prediction):
     return df_merged
 
 
-def compare_data(data, csv: str):
+
+def combine_split_questions(df):
+    """
+    Kombiniert gesplittete Fragen (z. B. 7a, 7b, 7c) zu einer einzigen Frage 7.
+    Regel:
+        - Wenn irgendeine Teilfrage 0 ist -> Gesamtfrage = 0
+        - Nur wenn alle Teilfragen 1 sind -> Gesamtfrage = 1
+    Funktioniert für beliebige Fragebezeichner mit Buchstabenanhang.
+    """
+    # Basisnummer extrahieren, z. B. "7a" -> "7"
+    df['base_prompt'] = df['prompt_number'].apply(lambda x: re.match(r'(\d+)', str(x)).group(1) if re.match(r'(\d+)', str(x)) else x)
+
+    # Gruppieren nach Studie & Basisfrage
+    agg_df = (
+        df.groupby(['study_number', 'base_prompt'])
+        .agg({
+            'answer': lambda x: int(all(x.astype(int))),         # nur 1 wenn alle 1 sind
+            'model_answer': lambda x: int(all(x.astype(int)))    # dito für Modell
+        })
+        .reset_index()
+        .rename(columns={'base_prompt': 'prompt_number'})
+    )
+
+    return agg_df
+
+
+def compare_data(data, csv: str, combine7abc: bool = False):
     """
     Vergleicht die Daten aus einem Run mit den Antworten aus einer CSV-Datei.
     Gibt Gesamtmetriken und Genauigkeiten pro Frage & pro Paper zurück.
@@ -71,6 +98,9 @@ def compare_data(data, csv: str):
     correct_answers_df = load_correct_answers(csv)
 
     df_merged = merge_dataframes(correct_answers_df, prediction_df)
+
+    if combine7abc:
+        df_merged = combine_split_questions(df_merged)
 
     y_true = df_merged['answer']
     y_pred = df_merged['model_answer']

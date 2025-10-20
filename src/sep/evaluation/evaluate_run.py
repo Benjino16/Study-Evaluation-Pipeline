@@ -34,24 +34,21 @@ def print_result(results):
     print(f"Samples  :\t{results['overall']['n_samples']}")
 
 
-def run_comparison(csv: str, filepath: str, combine7abc: bool, ignore_na: bool = False):
+def run_comparison(csv: str, filepath: str, combine7abc: bool):
     data = load_saved_jsons(filepath, combine7abc)
     if not data:
         raise ValueError(f"No files found for pattern: {filepath}")
-    return compare_data(data, csv, ignore_na)
+    return compare_data(data, csv, combine7abc)
 
 def main():
     parser = argparse.ArgumentParser(description='Process files with specified model (gpt or gemini).')
     parser.add_argument('--data', type=str, required=True, help='The json raw data that should be evaluated (supports globbing).')
     parser.add_argument('--csv', type=str, help='The csv that the results should be compared to.')
-    parser.add_argument('--combine7abc', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
+    parser.add_argument('--combine7abc', '-7', action='store_true', help='Combines the answers of 7a, 7b and 7c to one.')
 
     args = parser.parse_args()
-
     csv = args.csv or DEFAULT_CSV
-    ignore_na = args.include_na
-
-    data = run_comparison(csv, args.data, args.combine7abc, ignore_na)
+    data = run_comparison(csv, args.data, args.combine7abc)
     print_result(data)
 
 if __name__ == '__main__':
