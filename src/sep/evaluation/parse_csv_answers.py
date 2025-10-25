@@ -18,10 +18,19 @@ def parse_json_answer(answer):
         return None  # Invalid answer or "No Answer"
 
 def clean_study_number(study_number):
-    """Clean study number by removing file extensions and leading zeros."""
-    study_number = study_number.replace('.pdf', '')  # Remove .pdf if it exists
-    study_number = study_number.lstrip('0')  # Remove leading zeros
-    return study_number
+    """Cleans a study number by removing file extensions and leading zeros."""
+    s = str(study_number).strip()
+
+    if s.lower().endswith('.pdf'):
+        s = s[:-4]
+
+    s = s.lstrip('0')
+
+    if s == '':
+        s = '0'
+
+    return s
+
 
 def create_list(data):
     result_list = []
