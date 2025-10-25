@@ -3,11 +3,11 @@ Module to process text or PDF files using various AI models like Gemini, GPT, or
 It selects prompts dynamically and handles batch processing with optional delay and error handling.
 """
 
-from .gemini_pipeline import process_file_with_gemini
-from .gpt_pipeline import process_pdf_with_openai
-from .gpt_text_pipeline import process_text_with_openai
-from .ollama_pipeline import process_text_with_ollama
-from.test_pipeline import process_test_pipeline
+from .gemini import process_file_with_gemini
+from .gpt import process_pdf_with_openai
+from .deepseek import process_text_with_openai
+from .custom_api import process_text_with_ollama
+from.mock_api import process_test_pipeline
 import logging
 
 logging.basicConfig(level=logging.INFO)

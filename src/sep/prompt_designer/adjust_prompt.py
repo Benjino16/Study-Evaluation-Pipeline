@@ -1,5 +1,5 @@
 from sep.utils.load_json import load_json
-from sep.api_request.gemini_pipeline import process_file_with_gemini
+from sep.api_request.gemini import process_file_with_gemini
 from sep.prompt_designer.get_correct_answers import get_correct_answers
 from sep.env_manager import PROMPT_DESIGN_PROMPT_PATH
 from sep.logger import setup_logger
