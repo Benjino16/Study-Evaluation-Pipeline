@@ -2,6 +2,9 @@ import os
 import yaml
 from dotenv import load_dotenv, find_dotenv
 from pathlib import Path
+from sep.logger import setup_logger
+
+log = setup_logger(__name__)
 
 """The environment manager takes care of the correct import of the env variables and the loading of config.yaml."""
 
@@ -21,7 +24,7 @@ def config(key):
     for part in parts:
         value = value.get(part)
         if value is None:
-            raise KeyError(f"Key '{key}' not found in {config_path}")
+            log.warning(f"The key {key} was not found in the config.yaml")
     
     return value
 

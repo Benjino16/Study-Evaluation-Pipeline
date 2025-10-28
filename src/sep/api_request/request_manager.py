@@ -6,8 +6,8 @@ It selects prompts dynamically and handles batch processing with optional delay 
 from .gemini import process_file_with_gemini
 from .gpt import process_pdf_with_openai
 from .deepseek import process_text_with_openai
-from .custom_api import process_text_with_ollama
-from.mock_api import process_test_pipeline
+from .custom_api import process_text_with_custom_api
+from .mock_api import process_test_pipeline
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +60,7 @@ def run_prompt(prompt: str, file_path: str, model: str, pdf_reader: bool, temper
     elif model.lower().startswith('deepseek'):
         if pdf_reader:
             # Process text input with Ollama
-            last_output = process_text_with_ollama(prompt, file_path, model, temperature)
+            last_output = process_text_with_custom_api(prompt, file_path, model, temperature)
         else:
             # Ollama models require PDF reader mode
             raise ValueError("A request to an ollama model is not possible without a PDF reader. Use --pdf_reader in the arguments.")

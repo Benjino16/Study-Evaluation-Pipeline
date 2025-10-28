@@ -1,43 +1,38 @@
 from .gemini import test_gemini_pipeline
 from .gpt import test_gpt_pipeline
-from .custom_api import test_ollama_pipeline
 from .deepseek import test_deepseek_pipeline
-import logging
+from sep.logger import setup_logger
 
-logging.basicConfig(level=logging.INFO)
+log = setup_logger(__name__)
 
 def api_test():
     """
     Sends a test request to the various APIs to see if the service is available.
     """
-    logging.info("---- API Test ----")
+    log.info("---- API Test ----")
 
-    logging.info("testing gpt api...")
+    log.info("testing gpt api...")
     gpt_pipeline = test_gpt_pipeline()
     log_test_result(gpt_pipeline)
 
-    logging.info("testing gemini api...")
+    log.info("testing gemini api...")
     gemini_pipeline = test_gemini_pipeline() 
     log_test_result(gemini_pipeline)
 
-    logging.info("testing deepseek api...")
+    log.info("testing deepseek api...")
     deepseek_pipeline = test_deepseek_pipeline() 
     log_test_result(deepseek_pipeline)
 
-    logging.info("testing ollama api...")
-    ollama_pipeline = test_ollama_pipeline() 
-    log_test_result(ollama_pipeline)
     
     return {
         "gpt": gpt_pipeline,
         "gemini": gemini_pipeline,
         "deepseek": deepseek_pipeline,
-        "ollama": ollama_pipeline,
         "local": False
     }
 
 def log_test_result(passed: bool):
-    logging.info("passed ✅" if passed else "error ❌")
+    log.info("passed ✅" if passed else "error ❌")
 
 if __name__ == '__main__':
     api_test()
