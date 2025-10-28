@@ -28,7 +28,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [project.scripts]
-sep-run = "sep.run:main"
+sep-run = "sep.paper2llm.cli:main"
 sep-reconcile = "sep.reconciliation_manager:main"
 sep-api-test = "sep.api_request.api_test:main"
 
