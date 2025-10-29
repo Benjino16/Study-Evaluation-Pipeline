@@ -16,6 +16,9 @@ dependencies = [
     "pandas==2.3.3",
     "pandas-stubs==2.3.2.250926",
     "scikit-learn==1.7.2",
+    "typer==0.20.0",
+    "fastapi==0.120.1",
+    "uvicorn==0.38.0"
 ]
 
 [project.optional-dependencies]
@@ -28,7 +31,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [project.scripts]
-sep-run = "sep.paper2llm.cli:main"
+sep-run = "sep.paper2llm.cli:app"
 sep-reconcile = "sep.reconciliation_manager:main"
 sep-api-test = "sep.api_request.api_test:main"
 

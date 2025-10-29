@@ -1,123 +1,81 @@
-"""
-This script provides a command-line interface for processing PDF files with a specified model.
-"""
-
-from sep.env_manager import PDF_FOLDER, PROMPT_PATH
+import typer
+import requests
+from sep.file_manager.file_manager import get_papers_from_schema
 from sep.prompt_manager import getPrompt
-from sep.paper2llm.process_paper import process_paper
+from sep.env_manager import PROMPT_PATH
 
-import argparse
-import glob
-import os
-import time
-import datetime
-import traceback
+API_URL = "http://127.0.0.1:8000"
 
-def clear_console():
-    """
-    Clears the console output.
-    """
-    os.system('cls' if os.name == 'nt' else 'clear')
+app = typer.Typer(help="CLI client for the persistent RunManager API.")
 
-def display_overview(model: str, files_to_process, delay: int, process_all: bool, temperature: float):
-    """
-    Displays a summary of the current processing configuration.
+@app.command("start")
+def start(
+    model: str = typer.Option(..., "-m"),
+    files: list[str] = typer.Option(None, "-f"),
+    delay: int = 15,
+    temp: float = 1.0,
+    prompt_path: str = None,
+):
+    """Start a new run via the API."""
+    pdf_paths = files or get_papers_from_schema("main")
+    prompt = getPrompt(prompt_path or PROMPT_PATH)
 
-    """
-    clear_console()
-    if process_all:
-        time_calculation = (delay + 5) * len(files_to_process)
+    data = {
+        "model": model,
+        "prompt": prompt,
+        "files": pdf_paths,
+        "delay": delay,
+        "temp": temp,
+    }
+
+    r = requests.post(f"{API_URL}/runs/", json=data)
+    if r.status_code == 200:
+        run = r.json()
+        typer.echo(f"✅ Started run {run['id']} ({len(pdf_paths)} files).")
     else:
-        time_calculation = (delay + 5) * len(files_to_process)
+        typer.echo(f"❌ Error: {r.text}")
 
-    formatted_time = str(datetime.timedelta(seconds=time_calculation))
+@app.command("list")
+def list_runs():
+    """List all runs."""
+    r = requests.get(f"{API_URL}/runs/")
+    runs = r.json()
+    if not runs:
+        typer.echo("No runs found.")
+        return
+    for run in runs:
+        typer.echo(f"{run['id']} | {run['status']} | {run['progress']*100:.0f}% | {run['model']}")
 
-    print("\n-------- Overview --------\n")
-    print(f"Model: {model}")
-    print(f"Temperature: {temperature}")
-    print(f"Files: {files_to_process}")
-    print(f"Delay between requests: {delay}")
-    print(f"Process all prompts: {process_all}")
-    print(f"Estimated Total Time: {formatted_time}")
+@app.command("status")
+def status(run_id: str):
+    """Show status of a specific run."""
+    r = requests.get(f"{API_URL}/runs/{run_id}")
+    if r.status_code == 404 or not r.json():
+        typer.echo("Run not found.")
+        return
+    run = r.json()
+    typer.echo(f"{run['id']}: {run['status']} ({run['progress']*100:.1f}%)")
 
-def display_status(model, current_file, progress, failed, errors, last_output):
-    """
-    Displays the current processing status, last output, and any errors.
-    """
-    clear_console()
-    print(f"Model: {model}")
-    print(f"File: {current_file}")
-    print(f"Progress: {progress}")
-    print(f"Failed: {failed}\n")
-    
-    print("\n-------- Last Answer --------\n")
-    print(last_output or "Waiting for output...")
-    
-    if errors:
-        print("\n-------- Errors --------\n")
-        for error in errors:
-            print(error)
-            
-    print("\n-------- Live Protocol --------\n")
+@app.command("stop")
+def stop(run_id: str):
+    """Stop a running run."""
+    r = requests.post(f"{API_URL}/runs/{run_id}/stop")
+    if r.status_code == 200:
+        typer.echo(f"🛑 Stopping run {run_id}...")
+    else:
+        typer.echo(f"❌ Error: {r.text}")
 
-def main():
-    """
-    Main entry point for processing files with a specified model.
-    Parses command-line arguments, validates input, manages processing flow, and saves results.
-    """
-    parser = argparse.ArgumentParser(description='Process files with specified model (e.g., gpt or gemini).')
-    parser.add_argument('--model', '-m', required=True, help='Model to use (e.g., gpt-4o, gemini-3).')
-    parser.add_argument('--files', '-f', nargs='+', help='Files or patterns to process (supports globbing).')
-    parser.add_argument('--delay', '-d', type=int, default=15, help='Delay time in seconds between processing files.')
-    parser.add_argument('--temp', '-t', type=float, default=1.0, help='The temperature setting for model randomness.')
-    parser.add_argument('--single_process', action='store_true', help='Process all prompts in splitted request if set. If --pdf_reader is enabled, it processes each page separately.')
-    parser.add_argument('--pdf_reader', action='store_true', help='Uses a local PDF reader to extract content as context for the model.')
-    parser.add_argument('--prompt', required=False, help='Provide the path to a custom prompt.')
+@app.command("serve")
+def serve(
+    host: str = "127.0.0.1",
+    port: int = 8000,
+):
+    """Start the RunManager API service."""
+    import uvicorn
+    from sep.api.run_api import app as api_app
+    typer.echo(f"🚀 Starting RunManager API on http://{host}:{port}")
+    uvicorn.run(api_app, host=host, port=port)
 
-    args = parser.parse_args()
-
-    pdf_path = args.files or [PDF_FOLDER + "*.pdf"]
-    prompt_path = args.prompt or PROMPT_PATH
-
-    files_to_process = []
-    for file_pattern in pdf_path:
-        files_to_process.extend(glob.glob(file_pattern))
-
-    files_to_process = list(set(files_to_process))  # Remove duplicate files
-
-    # Show processing overview
-    display_overview(args.model, files_to_process, args.delay, not args.single_process, args.temp)
-    user_input = input("Press Enter to continue...")
-    if user_input != "":
-        raise ValueError("Exiting program, user pressed a key other than Enter.")
-
-    total_files = len(files_to_process)
-    processed_count = 0
-    failed_count = 0
-    errors = []
-
-    full_prompt = getPrompt(prompt_path)
-
-    if not full_prompt:
-        raise ValueError("Failed to load prompt.")
-
-    # Process each file
-    for file_path in files_to_process:
-        processed_count += 1
-        last_output = None
-
-        try:
-            last_output, save_folder = process_paper(full_prompt, args.model, file_path, args.delay, args.temp, args.single_process, args.pdf_reader, same_run=True)
-        except Exception as e:
-            error_message = f"Error processing {file_path}:\n{traceback.format_exc()}"
-            errors.append(error_message)
-            failed_count += 1
-
-        display_status(args.model, os.path.basename(file_path), 
-                       f"{processed_count}/{total_files}", failed_count, errors, last_output)
-
-        if args.delay > 0:
-            time.sleep(args.delay)
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    app()
+ 
