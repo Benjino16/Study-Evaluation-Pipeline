@@ -5,9 +5,9 @@ import json
 from tabulate import tabulate
 import logging
 
-from sep.evaluation.compare_answers import run_comparison, print_result
+from sep.core.evaluation.compare_answers import run_comparison, print_result
 from sep.env_manager import RESULT_FOLDER, DEFAULT_CSV, DEFAULT_CSV_COMBINED
-from sep.utils.get_run_dir import get_list_of_run_paths
+from sep.core.utils.get_run_dir import get_list_of_run_paths
 
 logging.basicConfig(level=logging.INFO)
 

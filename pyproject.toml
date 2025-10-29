@@ -31,18 +31,10 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [project.scripts]
-sep-run = "sep.paper2llm.cli:app"
-sep-reconcile = "sep.reconciliation_manager:main"
+sep-run = "sep.cli.cli:app"
 sep-api-test = "sep.api_request.api_test:main"
 
-sep-combine-csv-answers = "sep.evaluation.comebine_csv_answers:main"
 sep-create-csv = "sep.evaluation.create_csv:main"
-sep-edit-run-information = "sep.evaluation.edit_run_information:main"
-sep-evaluate-reconciliation = "sep.evaluation.evaluate_reconciliation:main"
-sep-export-results = "sep.evaluation.export_results_as_csv:main"
-sep-set-attribute-of-run = "sep.evaluation.set_attribute_of_run:main"
-sep-compare-answers = "sep.evaluation.compare_answers:main"
-sep-evaluate-run = "sep.evaluation.evaluate_run:main"
-sep-er = "sep.evaluation.evaluate_run:main"
-sep-display-runs = "sep.display_runs:main"
-sep-prompt-designer = "sep.prompt_designer.run_prompt_design:main"
+sep-evaluate = "sep.core.evaluation.evaluate_run:main"
+sep-display = "sep.display_runs:main"
+sep-prompt-designer = "sep.core.prompt_designer.run_prompt_design:main"

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from sep.paper2llm.manager import RunManager
-from sep.paper2llm.models import Run
+from sep.runner.manager import RunManager
+from sep.runner.models import Run
 
 app = FastAPI(title="Study Evaluation Runner API")
 manager = RunManager()
