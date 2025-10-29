@@ -35,7 +35,7 @@ GPT_UPLOADED_FILES = config("uploaded_gpt_files")
 BASIC_PROMPT_PATH = config("basic_prompt_file_path")
 PROMPT_DESIGN_PROMPT_PATH = config("prompt_design_prompt_path")
 
-PDF_FOLDER = config("pdf_folder")
+PDF_FOLDER = PROJECT_ROOT / config("pdf_folder")
 RESULT_FOLDER = config("result_folder")
 CSV_FOLDER = config("csv_folder")
 ADJUSTED_PROMPT_FOLDER = config("adjusted_prompts")

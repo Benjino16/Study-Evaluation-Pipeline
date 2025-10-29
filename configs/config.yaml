@@ -7,7 +7,7 @@ basic_prompt_file_path: D:\dev\github\Study-Evaluation-Pipeline\resources\base_p
 prompt_design_prompt_path: D:\dev\github\Study-Evaluation-Pipeline\resources\prompt_designer.json
 
 #Default Inputs
-pdf_folder: data/input/pdfs/main/
+pdf_folder: data/input/pdfs/
 standard_csv_responses: resources/csv/correct_answers.CSV
 standard_csv_responses_7abc_combined: resources/csv/correct_answers_combined.CSV
 
