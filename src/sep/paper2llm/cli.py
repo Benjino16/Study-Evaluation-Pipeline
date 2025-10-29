@@ -4,7 +4,7 @@ This script provides a command-line interface for processing PDF files with a sp
 
 from sep.env_manager import PDF_FOLDER, PROMPT_PATH
 from sep.prompt_manager import getPrompt
-from sep.process_paper import process_paper
+from sep.paper2llm.process_paper import process_paper
 
 import argparse
 import glob

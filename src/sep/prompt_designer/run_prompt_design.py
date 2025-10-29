@@ -4,7 +4,7 @@ import time
 from sep.env_manager import DEFAULT_CSV, BASIC_PROMPT_PATH
 from sep.evaluation.load_saved_json import load_saved_jsons
 from sep.prompt_designer.adjust_prompt import adjust_prompt, PROMPT_DESIGN_PROMPT
-from sep.process_paper import process_paper
+from sep.paper2llm.process_paper import process_paper
 from sep.prompt_manager import getPrompt
 from sep.prompt_designer.json_log import init_log, update_log
 from sep.evaluation.compare_answers import compare_data
